@@ -47,7 +47,7 @@ topology:
     # 5. SONiC Management Container
     sonic-mgmt:
       kind: linux
-      image: ghcr.io/srl-labs/alpine:latest
+      image: docker-sonic-mgmt-rwang:master
       binds:
         - ../configs:/configs:ro
         - ../scripts:/scripts:rw
