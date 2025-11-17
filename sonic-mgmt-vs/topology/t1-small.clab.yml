@@ -20,8 +20,8 @@ topology:
       kind: sonic-vs
       startup-config: ../configs/sonic-dut/config_db.json
       ports:
-        - "8080:80"    # HTTP access
-        - "8443:443"   # HTTPS access
+        - "8081:80"    # HTTP access
+        - "8444:443"   # HTTPS access
 
     # 2. T0 Neighbor (Tier 0 - replaced Arista cEOS with SONiC-vs)
     t0:
