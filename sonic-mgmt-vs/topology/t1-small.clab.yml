@@ -52,6 +52,7 @@ topology:
         - /var/run/docker.sock:/var/run/docker.sock
         - ../configs:/configs:ro
         - ../scripts:/scripts:rw
+        - ~/sonic-mgmt:/sonic-mgmt:rw
       env:
         SONIC_MGMT_LAB: t1-small
 
