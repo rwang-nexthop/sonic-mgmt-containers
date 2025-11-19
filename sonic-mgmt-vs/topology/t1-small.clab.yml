@@ -49,6 +49,7 @@ topology:
       kind: linux
       image: docker-sonic-mgmt-rwang:master
       binds:
+        - /var/run/docker.sock:/var/run/docker.sock
         - ../configs:/configs:ro
         - ../scripts:/scripts:rw
       env:

@@ -1,0 +1,140 @@
+rwang@ts107:~$ docker exec -it clab-t1-small-sonic-mgmt bash
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+rwang@sonic-mgmt:~$ mkdir -p /tmp/sonic-configs
+rwang@sonic-mgmt:~$ cd /tmp/sonic-configs
+rwang@sonic-mgmt:/tmp/sonic-configs$ ls
+rwang@sonic-mgmt:/tmp/sonic-configs$ cat > /tmp/sonic-configs/inventory.ini << 'EOF'
+> [sonic]
+> sonic-dut ansible_host=172.30.30.4 ansible_user=admin
+>
+> [t0]
+> t0 ansible_host=172.30.30.3 ansible_user=admin
+>
+> [t2]
+> t2 ansible_host=172.30.30.2 ansible_user=admin
+>
+> [ptf]
+> ptf ansible_host=172.30.30.6 ansible_user=root
+> EOF
+rwang@sonic-mgmt:/tmp/sonic-configs$ ls
+inventory.ini
+rwang@sonic-mgmt:/tmp/sonic-configs$ cat inventory.ini
+[sonic]
+sonic-dut ansible_host=172.30.30.4 ansible_user=admin
+
+[t0]
+t0 ansible_host=172.30.30.3 ansible_user=admin
+
+[t2]
+t2 ansible_host=172.30.30.2 ansible_user=admin
+
+[ptf]
+ptf ansible_host=172.30.30.6 ansible_user=root
+rwang@sonic-mgmt:/tmp/sonic-configs$ cat > /tmp/sonic-configs/testbed.yaml << 'EOF'
+> - name: t1-small
+>   topology: t1
+>   dut:
+>     - sonic-dut
+>   ptf_image_name: docker-ptf
+>   ptf:
+>     - ptf
+>   neighbors:
+>     - t0
+>     - t2
+> EOF
+rwang@sonic-mgmt:/tmp/sonic-configs$ ls
+inventory.ini  testbed.yaml
+rwang@sonic-mgmt:/tmp/sonic-configs$ ls -la /tmp/sonic-configs/
+total 16
+drwxr-xr-x 2 rwang rwang 4096 Nov 18 15:20 .
+drwxrwxrwt 1 root  root  4096 Nov 18 15:20 ..
+-rw-r--r-- 1 rwang rwang  222 Nov 18 15:19 inventory.ini
+-rw-r--r-- 1 rwang rwang  132 Nov 18 15:20 testbed.yaml
+rwang@sonic-mgmt:/tmp/sonic-configs$ cat /tmp/sonic-configs/inventory.ini
+[sonic]
+sonic-dut ansible_host=172.30.30.4 ansible_user=admin
+
+[t0]
+t0 ansible_host=172.30.30.3 ansible_user=admin
+
+[t2]
+t2 ansible_host=172.30.30.2 ansible_user=admin
+
+[ptf]
+ptf ansible_host=172.30.30.6 ansible_user=root
+rwang@sonic-mgmt:/tmp/sonic-configs$ ansible sonic-dut -i /tmp/sonic-configs/inventory.ini -m ping
+/usr/local/lib/python3.8/dist-packages/paramiko/transport.py:236: CryptographyDeprecationWarning: Blowfish has been deprecated
+  "class": algorithms.Blowfish,
+[WARNING]: Found both group and host with same name: ptf
+[WARNING]: Found both group and host with same name: t2
+[WARNING]: Found both group and host with same name: t0
+sonic-dut | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.4 port 22: Connection refused",
+    "unreachable": true
+}
+rwang@sonic-mgmt:/tmp/sonic-configs$ ansible all -i /tmp/sonic-configs/inventory.ini -m ping
+/usr/local/lib/python3.8/dist-packages/paramiko/transport.py:236: CryptographyDeprecationWarning: Blowfish has been deprecated
+  "class": algorithms.Blowfish,
+[WARNING]: Found both group and host with same name: t0
+[WARNING]: Found both group and host with same name: t2
+[WARNING]: Found both group and host with same name: ptf
+sonic-dut | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.4 port 22: Connection refused",
+    "unreachable": true
+}
+t0 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.3 port 22: Connection refused",
+    "unreachable": true
+}
+t2 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.2 port 22: Connection refused",
+    "unreachable": true
+}
+The authenticity of host '172.30.30.6 (172.30.30.6)' can't be established.
+ECDSA key fingerprint is SHA256:5WvJJg+vEnqW+wN2eugYeiJWJemXmscfrNbiRTbt/mY.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? tes
+Please type 'yes', 'no' or the fingerprint: yes
+ptf | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: Warning: Permanently added '172.30.30.6' (ECDSA) to the list of known hosts.\r\nroot@172.30.30.6: Permission denied (publickey,password).",
+    "unreachable": true
+}
+rwang@sonic-mgmt:/tmp/sonic-configs$ exit
+exit
+rwang@ts107:~$ ls
+
+
+rwang@ts107:~/sonic-mgmt-containers/sonic-mgmt-vs/topology$ docker ps
+CONTAINER ID   IMAGE                                                        COMMAND                  CREATED        STATUS                   PORTS                                                                                                                                                                 NAMES
+c2220787fcae   docker-sonic-vs:latest                                       "/bin/bash"              21 hours ago   Up 21 hours                                                                                                                                                                                    clab-t1-small-t2
+4b30d601a5b3   docker-sonic-vs:latest                                       "/bin/bash"              21 hours ago   Up 21 hours              0.0.0.0:8081->80/tcp, [::]:8081->80/tcp, 0.0.0.0:8444->443/tcp, [::]:8444->443/tcp                                                                                    clab-t1-small-sonic-dut
+976056dfc146   docker-sonic-vs:latest                                       "/bin/bash"              21 hours ago   Up 21 hours                                                                                                                                                                                    clab-t1-small-t0
+59c89046687b   docker-sonic-mgmt-rwang:master                               "/bin/bash"              21 hours ago   Up 21 hours              22/tcp                                                                                                                                                                clab-t1-small-sonic-mgmt
+a5e6c3e1440b   container-registry.sw.internal.nexthop.ai:443/docker-ptf     "/usr/local/bin/supe…"   21 hours ago   Up 21 hours              22/tcp, 0.0.0.0:8009->8009/tcp, [::]:8009->8009/tcp                                                                                                                   clab-t1-small-ptf
+d5dd743f06ce   docker-sonic-mgmt-rwang:master                               "/bin/bash"              21 hours ago   Up 21 hours              22/tcp                                                                                                                                                                sonic-mgmt-container
+
+07:21:53 INFO Parsing & checking topology file=t1-small.clab.yml
+╭──────────────────────────┬──────────────────────────────────────────────────────────┬─────────┬────────────────╮
+│           Name           │                        Kind/Image                        │  State  │ IPv4/6 Address │
+├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
+│ clab-t1-small-ptf        │ linux                                                    │ running │ 172.30.30.6    │
+│                          │ container-registry.sw.internal.nexthop.ai:443/docker-ptf │         │ N/A            │
+├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
+│ clab-t1-small-sonic-dut  │ sonic-vs                                                 │ running │ 172.30.30.4    │
+│                          │ docker-sonic-vs:latest                                   │         │ N/A            │
+├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
+│ clab-t1-small-sonic-mgmt │ linux                                                    │ running │ 172.30.30.5    │
+│                          │ docker-sonic-mgmt-rwang:master                           │         │ N/A            │
+├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
+│ clab-t1-small-t0         │ sonic-vs                                                 │ running │ 172.30.30.3    │
+│                          │ docker-sonic-vs:latest                                   │         │ N/A            │
+├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
+│ clab-t1-small-t2         │ sonic-vs                                                 │ running │ 172.30.30.2    │
+│                          │ docker-sonic-vs:latest                                   │         │ N/A            │
+╰──────────────────────────┴──────────────────────────────────────────────────────────┴─────────┴────────────────╯
