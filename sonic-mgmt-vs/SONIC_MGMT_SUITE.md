@@ -648,6 +648,37 @@ python -m pytest bgp/test_bgp_fact.py -v \
 - `--testbed_file /tmp/sonic-configs/testbed.yaml` = The testbed FILE PATH
 - Both are required by the sonic-mgmt framework
 
+### KeyError: 'tg_api_server'
+
+**Problem**: You see this error when running pytest:
+```
+KeyError: 'tg_api_server'
+```
+
+**Cause**: The testbed.yaml is using the wrong format. There are TWO testbed formats in sonic-mgmt:
+- **OLD format** (what you need): Uses `conf-name`, `ptf_ip`, `dut` list
+- **NEW NUT format** (for advanced setups): Uses `name`, `duts`, `tgs`, `tg_api_server`
+
+Your testbed.yaml was using the NEW format but sonic-mgmt expects the OLD format.
+
+**Solution**: The deploy script now creates the correct OLD format:
+```yaml
+- conf-name: t1-small
+  group-name: t1-small-group
+  topo: t1
+  ptf_image_name: docker-ptf
+  ptf: ptf
+  ptf_ip: 172.30.30.6/24
+  server: localhost
+  dut:
+    - sonic-dut
+  inv_name: sonic
+  auto_recover: 'False'
+  comment: t1-small topology for sonic-mgmt testing
+```
+
+Just run the updated deploy script and it will create the correct format.
+
 ### Config Files Not Found
 
 **Problem**: You see `/tmp/sonic-configs/: No such file or directory`

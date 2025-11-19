@@ -43,16 +43,19 @@ INVENTORY_EOF'
 
     # Create testbed.yaml file INSIDE sonic-mgmt container
     docker exec clab-t1-small-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/testbed.yaml << '\''TESTBED_EOF'\''
-- name: t1-small
-  topology: t1
+- conf-name: t1-small
+  group-name: t1-small-group
+  topo: t1
+  ptf_image_name: docker-ptf
+  ptf: ptf
+  ptf_ip: 172.30.30.6/24
+  server: localhost
+  vm_base:
   dut:
     - sonic-dut
-  ptf_image_name: docker-ptf
-  ptf:
-    - ptf
-  neighbors:
-    - t0
-    - t2
+  inv_name: sonic
+  auto_recover: '\''False'\''
+  comment: t1-small topology for sonic-mgmt testing
 TESTBED_EOF'
 
     echo -e "${GREEN}✓ Configuration files created in sonic-mgmt container at /tmp/sonic-configs/${NC}"
