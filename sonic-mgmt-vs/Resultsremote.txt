@@ -1,140 +1,474 @@
-rwang@ts107:~$ docker exec -it clab-t1-small-sonic-mgmt bash
-To run a command as administrator (user "root"), use "sudo <command>".
-See "man sudo_root" for details.
+rwang@ts107:~/sonic-mgmt-containers/sonic-mgmt-vs/scripts$ ./verify_topology.sh
+==========================================
+t1-small Topology Verification Script
+==========================================
 
-rwang@sonic-mgmt:~$ mkdir -p /tmp/sonic-configs
-rwang@sonic-mgmt:~$ cd /tmp/sonic-configs
-rwang@sonic-mgmt:/tmp/sonic-configs$ ls
-rwang@sonic-mgmt:/tmp/sonic-configs$ cat > /tmp/sonic-configs/inventory.ini << 'EOF'
-> [sonic]
-> sonic-dut ansible_host=172.30.30.4 ansible_user=admin
->
-> [t0]
-> t0 ansible_host=172.30.30.3 ansible_user=admin
->
-> [t2]
-> t2 ansible_host=172.30.30.2 ansible_user=admin
->
-> [ptf]
-> ptf ansible_host=172.30.30.6 ansible_user=root
-> EOF
-rwang@sonic-mgmt:/tmp/sonic-configs$ ls
-inventory.ini
-rwang@sonic-mgmt:/tmp/sonic-configs$ cat inventory.ini
-[sonic]
-sonic-dut ansible_host=172.30.30.4 ansible_user=admin
+1. Checking container status...
+  ✓ clab-t1-small-sonic-dut is running
+  ✓ clab-t1-small-t0 is running
+  ✓ clab-t1-small-t2 is running
+  ✓ clab-t1-small-ptf is running
+  ✓ clab-t1-small-sonic-mgmt is running
 
-[t0]
-t0 ansible_host=172.30.30.3 ansible_user=admin
+Detailed container status:
+NAMES                          STATUS                      IMAGE
+clab-t1-small-sonic-dut        Up About a minute           docker-sonic-vs:latest
+clab-t1-small-t0               Up About a minute           docker-sonic-vs:latest
+clab-t1-small-t2               Up About a minute           docker-sonic-vs:latest
+clab-t1-small-sonic-mgmt       Up About a minute           docker-sonic-mgmt-rwang:master
+clab-t1-small-ptf              Up About a minute           container-registry.sw.internal.nexthop.ai:443/docker-ptf
+sonic-mgmt-container           Up 30 hours                 docker-sonic-mgmt-rwang:master
+orchagent-debug-1762897243     Exited (137) 7 days ago     docker-orchagent-dbg:latest
+clab-4-dut-with-ixia-dt-dut4   Up 11 days (healthy)        container-registry.sw.internal.nexthop.ai/clab-sonic:12336
+clab-4-dut-with-ixia-dt-ixia   Up 11 days                  ghcr.io/open-traffic-generator/ixia-c-one:latest
+clab-4-dut-with-ixia-dt-dut3   Up 11 days (healthy)        container-registry.sw.internal.nexthop.ai/clab-sonic:12336
+clab-4-dut-with-ixia-dt-dut1   Up 11 days (healthy)        container-registry.sw.internal.nexthop.ai/clab-sonic:12336
+clab-4-dut-with-ixia-dt-dut2   Up 11 days (healthy)        container-registry.sw.internal.nexthop.ai/clab-sonic:12336
+orchagent-debug-1761849951     Exited (255) 12 days ago    26c3aad69c21
+clab-sonic-ecmp-demo-spine4    Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+clab-sonic-ecmp-demo-leaf1     Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+clab-sonic-ecmp-demo-spine2    Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+clab-sonic-ecmp-demo-spine1    Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+clab-sonic-ecmp-demo-spine3    Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+clab-sonic-ecmp-demo-ixia      Created                     ghcr.io/open-traffic-generator/ixia-c-one:latest
+clab-sonic-ecmp-demo-leaf2     Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+sonic-ztp-server               Up 12 days (healthy)        1a589129cf57
+orchagent-debug-1761350367     Exited (255) 12 days ago    70a8de945ced
+docker-mint-runner-lenny       Exited (255) 12 days ago    mint-runner
+clab-nexthop-lab-srl01t1       Exited (255) 12 days ago    ghcr.io/nokia/srlinux
+clab-nexthop-lab-srl03t3       Exited (255) 12 days ago    ghcr.io/nokia/srlinux
+clab-nexthop-lab-srl03t1       Exited (255) 12 days ago    ghcr.io/nokia/srlinux
+clab-nexthop-lab-srl01t3       Exited (255) 12 days ago    ghcr.io/nokia/srlinux
+clab-nexthop-lab-dut1          Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+clab-nexthop-lab-dut0          Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+docker-mint-runner-dt          Exited (255) 12 days ago    33004af8505d
+rw-test-sonic                  Exited (1) 5 weeks ago      container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+clab-single-dut-dut1           Exited (255) 12 days ago    container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+docker-mint-runner-sainath     Exited (255) 12 days ago    9c0311030788
+confetti-api                   Up 12 days (unhealthy)      confetti-backend
+confetti-frontend              Up 12 days                  confetti-frontend
+edgeshark-gostwire-1           Up 12 days                  ghcr.io/siemens/ghostwire
+edgeshark-edgeshark-1          Up 12 days                  ghcr.io/siemens/packetflix
+quizzical_turing               Exited (137) 7 weeks ago    vsc-sonic-clos-streaming-fb41d54d3b27cfa0ebf586e2d0b102c5d907b792fd99bf9741a0736bd52aec99-uid
+docker-tps-runner-dt           Exited (137) 2 months ago   docker-tps-runner
+clab-test-leaf1                Exited (0) 2 months ago     container-registry.sw.internal.nexthop.ai/clab-sonic:7470
+clab-test-host1                Up 12 days                  ghcr.io/srl-labs/alpine:latest
+clab-test-sp1                  Exited (0) 2 months ago     container-registry.sw.internal.nexthop.ai/clab-sonic:7470
+statomatic-gnmic-counters      Exited (0) 2 months ago     ghcr.io/openconfig/gnmic:latest
+statomatic-grafana             Exited (0) 2 months ago     grafana/grafana:latest
+statomatic-dashboard           Exited (137) 2 months ago   statomatic-dashboard
+statomatic-snmp-collector      Exited (137) 2 months ago   statomatic-snmp-collector
+statomatic-prometheus          Exited (0) 2 months ago     prom/prometheus:latest
+statomatic-gnmic               Exited (0) 2 months ago     ghcr.io/openconfig/gnmic:latest
 
-[t2]
-t2 ansible_host=172.30.30.2 ansible_user=admin
+2. Checking BGP neighbor status...
+sonic-dut BGP neighbors:
 
-[ptf]
-ptf ansible_host=172.30.30.6 ansible_user=root
-rwang@sonic-mgmt:/tmp/sonic-configs$ cat > /tmp/sonic-configs/testbed.yaml << 'EOF'
-> - name: t1-small
->   topology: t1
->   dut:
->     - sonic-dut
->   ptf_image_name: docker-ptf
->   ptf:
->     - ptf
->   neighbors:
->     - t0
->     - t2
-> EOF
-rwang@sonic-mgmt:/tmp/sonic-configs$ ls
-inventory.ini  testbed.yaml
-rwang@sonic-mgmt:/tmp/sonic-configs$ ls -la /tmp/sonic-configs/
-total 16
-drwxr-xr-x 2 rwang rwang 4096 Nov 18 15:20 .
-drwxrwxrwt 1 root  root  4096 Nov 18 15:20 ..
--rw-r--r-- 1 rwang rwang  222 Nov 18 15:19 inventory.ini
--rw-r--r-- 1 rwang rwang  132 Nov 18 15:20 testbed.yaml
-rwang@sonic-mgmt:/tmp/sonic-configs$ cat /tmp/sonic-configs/inventory.ini
-[sonic]
-sonic-dut ansible_host=172.30.30.4 ansible_user=admin
+IPv4 Unicast Summary (VRF default):
+BGP router identifier 10.1.0.1, local AS number 65100 vrf-id 0
+BGP table version 6
+RIB entries 11, using 2112 bytes of memory
+Peers 2, using 1449 KiB of memory
 
-[t0]
-t0 ansible_host=172.30.30.3 ansible_user=admin
+Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+10.0.0.0        4      65000         7         8        0    0    0 00:00:51            3        6 N/A
+10.0.0.2        4      65200         7         8        0    0    0 00:00:51            3        6 N/A
 
-[t2]
-t2 ansible_host=172.30.30.2 ansible_user=admin
+Total number of neighbors 2
 
-[ptf]
-ptf ansible_host=172.30.30.6 ansible_user=root
-rwang@sonic-mgmt:/tmp/sonic-configs$ ansible sonic-dut -i /tmp/sonic-configs/inventory.ini -m ping
-/usr/local/lib/python3.8/dist-packages/paramiko/transport.py:236: CryptographyDeprecationWarning: Blowfish has been deprecated
-  "class": algorithms.Blowfish,
-[WARNING]: Found both group and host with same name: ptf
-[WARNING]: Found both group and host with same name: t2
-[WARNING]: Found both group and host with same name: t0
-sonic-dut | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.4 port 22: Connection refused",
-    "unreachable": true
-}
-rwang@sonic-mgmt:/tmp/sonic-configs$ ansible all -i /tmp/sonic-configs/inventory.ini -m ping
-/usr/local/lib/python3.8/dist-packages/paramiko/transport.py:236: CryptographyDeprecationWarning: Blowfish has been deprecated
-  "class": algorithms.Blowfish,
-[WARNING]: Found both group and host with same name: t0
-[WARNING]: Found both group and host with same name: t2
-[WARNING]: Found both group and host with same name: ptf
-sonic-dut | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.4 port 22: Connection refused",
-    "unreachable": true
-}
-t0 | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.3 port 22: Connection refused",
-    "unreachable": true
-}
-t2 | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: ssh: connect to host 172.30.30.2 port 22: Connection refused",
-    "unreachable": true
-}
-The authenticity of host '172.30.30.6 (172.30.30.6)' can't be established.
-ECDSA key fingerprint is SHA256:5WvJJg+vEnqW+wN2eugYeiJWJemXmscfrNbiRTbt/mY.
-Are you sure you want to continue connecting (yes/no/[fingerprint])? tes
-Please type 'yes', 'no' or the fingerprint: yes
-ptf | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: Warning: Permanently added '172.30.30.6' (ECDSA) to the list of known hosts.\r\nroot@172.30.30.6: Permission denied (publickey,password).",
-    "unreachable": true
-}
-rwang@sonic-mgmt:/tmp/sonic-configs$ exit
-exit
-rwang@ts107:~$ ls
+t0 BGP neighbors:
 
+IPv4 Unicast Summary (VRF default):
+BGP router identifier 10.0.0.100, local AS number 65000 vrf-id 0
+BGP table version 6
+RIB entries 11, using 2112 bytes of memory
+Peers 2, using 1449 KiB of memory
 
-rwang@ts107:~/sonic-mgmt-containers/sonic-mgmt-vs/topology$ docker ps
-CONTAINER ID   IMAGE                                                        COMMAND                  CREATED        STATUS                   PORTS                                                                                                                                                                 NAMES
-c2220787fcae   docker-sonic-vs:latest                                       "/bin/bash"              21 hours ago   Up 21 hours                                                                                                                                                                                    clab-t1-small-t2
-4b30d601a5b3   docker-sonic-vs:latest                                       "/bin/bash"              21 hours ago   Up 21 hours              0.0.0.0:8081->80/tcp, [::]:8081->80/tcp, 0.0.0.0:8444->443/tcp, [::]:8444->443/tcp                                                                                    clab-t1-small-sonic-dut
-976056dfc146   docker-sonic-vs:latest                                       "/bin/bash"              21 hours ago   Up 21 hours                                                                                                                                                                                    clab-t1-small-t0
-59c89046687b   docker-sonic-mgmt-rwang:master                               "/bin/bash"              21 hours ago   Up 21 hours              22/tcp                                                                                                                                                                clab-t1-small-sonic-mgmt
-a5e6c3e1440b   container-registry.sw.internal.nexthop.ai:443/docker-ptf     "/usr/local/bin/supe…"   21 hours ago   Up 21 hours              22/tcp, 0.0.0.0:8009->8009/tcp, [::]:8009->8009/tcp                                                                                                                   clab-t1-small-ptf
-d5dd743f06ce   docker-sonic-mgmt-rwang:master                               "/bin/bash"              21 hours ago   Up 21 hours              22/tcp                                                                                                                                                                sonic-mgmt-container
+Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+10.0.0.1        4      65100         8         7        0    0    0 00:00:51            5        6 N/A
+10.0.1.1        4      65200         7         7        0    0    0 00:00:51            6        6 N/A
 
-07:21:53 INFO Parsing & checking topology file=t1-small.clab.yml
-╭──────────────────────────┬──────────────────────────────────────────────────────────┬─────────┬────────────────╮
-│           Name           │                        Kind/Image                        │  State  │ IPv4/6 Address │
-├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
-│ clab-t1-small-ptf        │ linux                                                    │ running │ 172.30.30.6    │
-│                          │ container-registry.sw.internal.nexthop.ai:443/docker-ptf │         │ N/A            │
-├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
-│ clab-t1-small-sonic-dut  │ sonic-vs                                                 │ running │ 172.30.30.4    │
-│                          │ docker-sonic-vs:latest                                   │         │ N/A            │
-├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
-│ clab-t1-small-sonic-mgmt │ linux                                                    │ running │ 172.30.30.5    │
-│                          │ docker-sonic-mgmt-rwang:master                           │         │ N/A            │
-├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
-│ clab-t1-small-t0         │ sonic-vs                                                 │ running │ 172.30.30.3    │
-│                          │ docker-sonic-vs:latest                                   │         │ N/A            │
-├──────────────────────────┼──────────────────────────────────────────────────────────┼─────────┼────────────────┤
-│ clab-t1-small-t2         │ sonic-vs                                                 │ running │ 172.30.30.2    │
-│                          │ docker-sonic-vs:latest                                   │         │ N/A            │
-╰──────────────────────────┴──────────────────────────────────────────────────────────┴─────────┴────────────────╯
+Total number of neighbors 2
+
+t2 BGP neighbors:
+
+IPv4 Unicast Summary (VRF default):
+BGP router identifier 10.0.0.200, local AS number 65200 vrf-id 0
+BGP table version 6
+RIB entries 11, using 2112 bytes of memory
+Peers 2, using 1449 KiB of memory
+
+Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+10.0.0.3        4      65100         8         7        0    0    0 00:00:51            6        6 N/A
+10.0.1.0        4      65000         7         7        0    0    0 00:00:51            6        6 N/A
+
+Total number of neighbors 2
+
+2b. Detailed BGP neighbors information...
+sonic-dut BGP neighbors detail:
+BGP neighbor is 10.0.0.0, remote AS 65000, local AS 65100, external link
+  Local Role: undefined
+  Remote Role: undefined
+Hostname: t0
+  BGP version 4, remote router ID 10.0.0.100, local router ID 10.1.0.1
+  BGP state = Established, up for 00:00:51
+  Last read 00:00:50, Last write 00:00:50
+  Hold time is 180 seconds, keepalive interval is 60 seconds
+  Configured hold time is 180 seconds, keepalive interval is 60 seconds
+  Configured conditional advertisements interval is 60 seconds
+  Neighbor capabilities:
+    4 Byte AS: advertised and received
+    Extended Message: advertised and received
+    AddPath:
+      IPv4 Unicast: RX advertised and received
+    Long-lived Graceful Restart: advertised and received
+      Address families by peer:
+    Route refresh: advertised and received(old & new)
+    Enhanced Route Refresh: advertised and received
+    Address Family IPv4 Unicast: advertised and received
+    Hostname Capability: advertised (name: sonic-dut,domain name: n/a) received (name: t0,domain name: n/a)
+    Graceful Restart Capability: advertised and received
+      Remote Restart timer is 120 seconds
+      Address families by peer:
+        none
+  Graceful restart information:
+    End-of-RIB send: IPv4 Unicast
+    End-of-RIB received: IPv4 Unicast
+    Local GR Mode: Helper*
+
+    Remote GR Mode: Helper
+
+    R bit: True
+    N bit: True
+    Timers:
+      Configured Restart Time(sec): 120
+      Received Restart Time(sec): 120
+    IPv4 Unicast:
+      F bit: False
+      End-of-RIB sent: Yes
+      End-of-RIB sent after update: Yes
+      End-of-RIB received: Yes
+      Timers:
+        Configured Stale Path Time(sec): 360
+  Message statistics:
+    Inq depth is 0
+    Outq depth is 0
+                         Sent       Rcvd
+    Opens:                  1          1
+    Notifications:          0          0
+
+3. Checking interface status on sonic-dut...
+  Interface            Lanes    Speed    MTU    FEC           Alias    Vlan    Oper    Admin    Type    Asym PFC
+-----------  ---------------  -------  -----  -----  --------------  ------  ------  -------  ------  ----------
+  Ethernet0      25,26,27,28     100G    N/A    N/A    fortyGigE0/0  routed    down      N/A     N/A         N/A
+  Ethernet4      29,30,31,32     100G    N/A    N/A    fortyGigE0/4  routed    down      N/A     N/A         N/A
+  Ethernet8      33,34,35,36     100G    N/A    N/A    fortyGigE0/8  routed    down      N/A     N/A         N/A
+ Ethernet12      37,38,39,40     100G    N/A    N/A   fortyGigE0/12  routed    down      N/A     N/A         N/A
+ Ethernet16      45,46,47,48     100G    N/A    N/A   fortyGigE0/16  routed    down      N/A     N/A         N/A
+ Ethernet20      41,42,43,44     100G    N/A    N/A   fortyGigE0/20  routed    down      N/A     N/A         N/A
+ Ethernet24          1,2,3,4     100G    N/A    N/A   fortyGigE0/24  routed    down      N/A     N/A         N/A
+ Ethernet28          5,6,7,8     100G    N/A    N/A   fortyGigE0/28  routed    down      N/A     N/A         N/A
+ Ethernet32      13,14,15,16     100G    N/A    N/A   fortyGigE0/32  routed    down      N/A     N/A         N/A
+ Ethernet36       9,10,11,12     100G    N/A    N/A   fortyGigE0/36  routed    down      N/A     N/A         N/A
+ Ethernet40      17,18,19,20     100G    N/A    N/A   fortyGigE0/40  routed    down      N/A     N/A         N/A
+ Ethernet44      21,22,23,24     100G    N/A    N/A   fortyGigE0/44  routed    down      N/A     N/A         N/A
+ Ethernet48      53,54,55,56     100G    N/A    N/A   fortyGigE0/48  routed    down      N/A     N/A         N/A
+ Ethernet52      49,50,51,52     100G    N/A    N/A   fortyGigE0/52  routed    down      N/A     N/A         N/A
+ Ethernet56      57,58,59,60     100G    N/A    N/A   fortyGigE0/56  routed    down      N/A     N/A         N/A
+ Ethernet60      61,62,63,64     100G    N/A    N/A   fortyGigE0/60  routed    down      N/A     N/A         N/A
+ Ethernet64      69,70,71,72     100G    N/A    N/A   fortyGigE0/64  routed    down      N/A     N/A         N/A
+ Ethernet68      65,66,67,68     100G    N/A    N/A   fortyGigE0/68  routed    down      N/A     N/A         N/A
+ Ethernet72      73,74,75,76     100G    N/A    N/A   fortyGigE0/72  routed    down      N/A     N/A         N/A
+ Ethernet76      77,78,79,80     100G    N/A    N/A   fortyGigE0/76  routed    down      N/A     N/A         N/A
+ Ethernet80  109,110,111,112     100G    N/A    N/A   fortyGigE0/80  routed    down      N/A     N/A         N/A
+ Ethernet84  105,106,107,108     100G    N/A    N/A   fortyGigE0/84  routed    down      N/A     N/A         N/A
+ Ethernet88  113,114,115,116     100G    N/A    N/A   fortyGigE0/88  routed    down      N/A     N/A         N/A
+ Ethernet92  117,118,119,120     100G    N/A    N/A   fortyGigE0/92  routed    down      N/A     N/A         N/A
+ Ethernet96  125,126,127,128     100G    N/A    N/A   fortyGigE0/96  routed    down      N/A     N/A         N/A
+Ethernet100  121,122,123,124     100G    N/A    N/A  fortyGigE0/100  routed    down      N/A     N/A         N/A
+Ethernet104      81,82,83,84     100G    N/A    N/A  fortyGigE0/104  routed    down      N/A     N/A         N/A
+Ethernet108      85,86,87,88     100G    N/A    N/A  fortyGigE0/108  routed    down      N/A     N/A         N/A
+Ethernet112      93,94,95,96     100G    N/A    N/A  fortyGigE0/112  routed    down      N/A     N/A         N/A
+Ethernet116      89,90,91,92     100G    N/A    N/A  fortyGigE0/116  routed    down      N/A     N/A         N/A
+Ethernet120  101,102,103,104     100G    N/A    N/A  fortyGigE0/120  routed    down      N/A     N/A         N/A
+Ethernet124     97,98,99,100     100G    N/A    N/A  fortyGigE0/124  routed    down      N/A     N/A         N/A
+
+Interface status on t0:
+  Interface            Lanes    Speed    MTU    FEC           Alias    Vlan    Oper    Admin    Type    Asym PFC
+-----------  ---------------  -------  -----  -----  --------------  ------  ------  -------  ------  ----------
+  Ethernet0      25,26,27,28     100G    N/A    N/A    fortyGigE0/0  routed    down      N/A     N/A         N/A
+  Ethernet4      29,30,31,32     100G    N/A    N/A    fortyGigE0/4  routed    down      N/A     N/A         N/A
+  Ethernet8      33,34,35,36     100G    N/A    N/A    fortyGigE0/8  routed    down      N/A     N/A         N/A
+ Ethernet12      37,38,39,40     100G    N/A    N/A   fortyGigE0/12  routed    down      N/A     N/A         N/A
+ Ethernet16      45,46,47,48     100G    N/A    N/A   fortyGigE0/16  routed    down      N/A     N/A         N/A
+ Ethernet20      41,42,43,44     100G    N/A    N/A   fortyGigE0/20  routed    down      N/A     N/A         N/A
+ Ethernet24          1,2,3,4     100G    N/A    N/A   fortyGigE0/24  routed    down      N/A     N/A         N/A
+ Ethernet28          5,6,7,8     100G    N/A    N/A   fortyGigE0/28  routed    down      N/A     N/A         N/A
+ Ethernet32      13,14,15,16     100G    N/A    N/A   fortyGigE0/32  routed    down      N/A     N/A         N/A
+ Ethernet36       9,10,11,12     100G    N/A    N/A   fortyGigE0/36  routed    down      N/A     N/A         N/A
+ Ethernet40      17,18,19,20     100G    N/A    N/A   fortyGigE0/40  routed    down      N/A     N/A         N/A
+ Ethernet44      21,22,23,24     100G    N/A    N/A   fortyGigE0/44  routed    down      N/A     N/A         N/A
+ Ethernet48      53,54,55,56     100G    N/A    N/A   fortyGigE0/48  routed    down      N/A     N/A         N/A
+ Ethernet52      49,50,51,52     100G    N/A    N/A   fortyGigE0/52  routed    down      N/A     N/A         N/A
+ Ethernet56      57,58,59,60     100G    N/A    N/A   fortyGigE0/56  routed    down      N/A     N/A         N/A
+ Ethernet60      61,62,63,64     100G    N/A    N/A   fortyGigE0/60  routed    down      N/A     N/A         N/A
+ Ethernet64      69,70,71,72     100G    N/A    N/A   fortyGigE0/64  routed    down      N/A     N/A         N/A
+ Ethernet68      65,66,67,68     100G    N/A    N/A   fortyGigE0/68  routed    down      N/A     N/A         N/A
+ Ethernet72      73,74,75,76     100G    N/A    N/A   fortyGigE0/72  routed    down      N/A     N/A         N/A
+ Ethernet76      77,78,79,80     100G    N/A    N/A   fortyGigE0/76  routed    down      N/A     N/A         N/A
+ Ethernet80  109,110,111,112     100G    N/A    N/A   fortyGigE0/80  routed    down      N/A     N/A         N/A
+ Ethernet84  105,106,107,108     100G    N/A    N/A   fortyGigE0/84  routed    down      N/A     N/A         N/A
+ Ethernet88  113,114,115,116     100G    N/A    N/A   fortyGigE0/88  routed    down      N/A     N/A         N/A
+ Ethernet92  117,118,119,120     100G    N/A    N/A   fortyGigE0/92  routed    down      N/A     N/A         N/A
+ Ethernet96  125,126,127,128     100G    N/A    N/A   fortyGigE0/96  routed    down      N/A     N/A         N/A
+Ethernet100  121,122,123,124     100G    N/A    N/A  fortyGigE0/100  routed    down      N/A     N/A         N/A
+Ethernet104      81,82,83,84     100G    N/A    N/A  fortyGigE0/104  routed    down      N/A     N/A         N/A
+Ethernet108      85,86,87,88     100G    N/A    N/A  fortyGigE0/108  routed    down      N/A     N/A         N/A
+Ethernet112      93,94,95,96     100G    N/A    N/A  fortyGigE0/112  routed    down      N/A     N/A         N/A
+Ethernet116      89,90,91,92     100G    N/A    N/A  fortyGigE0/116  routed    down      N/A     N/A         N/A
+Ethernet120  101,102,103,104     100G    N/A    N/A  fortyGigE0/120  routed    down      N/A     N/A         N/A
+Ethernet124     97,98,99,100     100G    N/A    N/A  fortyGigE0/124  routed    down      N/A     N/A         N/A
+
+Interface status on t2:
+  Interface            Lanes    Speed    MTU    FEC           Alias    Vlan    Oper    Admin    Type    Asym PFC
+-----------  ---------------  -------  -----  -----  --------------  ------  ------  -------  ------  ----------
+  Ethernet0      25,26,27,28     100G    N/A    N/A    fortyGigE0/0  routed    down      N/A     N/A         N/A
+  Ethernet4      29,30,31,32     100G    N/A    N/A    fortyGigE0/4  routed    down      N/A     N/A         N/A
+  Ethernet8      33,34,35,36     100G    N/A    N/A    fortyGigE0/8  routed    down      N/A     N/A         N/A
+ Ethernet12      37,38,39,40     100G    N/A    N/A   fortyGigE0/12  routed    down      N/A     N/A         N/A
+ Ethernet16      45,46,47,48     100G    N/A    N/A   fortyGigE0/16  routed    down      N/A     N/A         N/A
+ Ethernet20      41,42,43,44     100G    N/A    N/A   fortyGigE0/20  routed    down      N/A     N/A         N/A
+ Ethernet24          1,2,3,4     100G    N/A    N/A   fortyGigE0/24  routed    down      N/A     N/A         N/A
+ Ethernet28          5,6,7,8     100G    N/A    N/A   fortyGigE0/28  routed    down      N/A     N/A         N/A
+ Ethernet32      13,14,15,16     100G    N/A    N/A   fortyGigE0/32  routed    down      N/A     N/A         N/A
+ Ethernet36       9,10,11,12     100G    N/A    N/A   fortyGigE0/36  routed    down      N/A     N/A         N/A
+ Ethernet40      17,18,19,20     100G    N/A    N/A   fortyGigE0/40  routed    down      N/A     N/A         N/A
+ Ethernet44      21,22,23,24     100G    N/A    N/A   fortyGigE0/44  routed    down      N/A     N/A         N/A
+ Ethernet48      53,54,55,56     100G    N/A    N/A   fortyGigE0/48  routed    down      N/A     N/A         N/A
+ Ethernet52      49,50,51,52     100G    N/A    N/A   fortyGigE0/52  routed    down      N/A     N/A         N/A
+ Ethernet56      57,58,59,60     100G    N/A    N/A   fortyGigE0/56  routed    down      N/A     N/A         N/A
+ Ethernet60      61,62,63,64     100G    N/A    N/A   fortyGigE0/60  routed    down      N/A     N/A         N/A
+ Ethernet64      69,70,71,72     100G    N/A    N/A   fortyGigE0/64  routed    down      N/A     N/A         N/A
+ Ethernet68      65,66,67,68     100G    N/A    N/A   fortyGigE0/68  routed    down      N/A     N/A         N/A
+ Ethernet72      73,74,75,76     100G    N/A    N/A   fortyGigE0/72  routed    down      N/A     N/A         N/A
+ Ethernet76      77,78,79,80     100G    N/A    N/A   fortyGigE0/76  routed    down      N/A     N/A         N/A
+ Ethernet80  109,110,111,112     100G    N/A    N/A   fortyGigE0/80  routed    down      N/A     N/A         N/A
+ Ethernet84  105,106,107,108     100G    N/A    N/A   fortyGigE0/84  routed    down      N/A     N/A         N/A
+ Ethernet88  113,114,115,116     100G    N/A    N/A   fortyGigE0/88  routed    down      N/A     N/A         N/A
+ Ethernet92  117,118,119,120     100G    N/A    N/A   fortyGigE0/92  routed    down      N/A     N/A         N/A
+ Ethernet96  125,126,127,128     100G    N/A    N/A   fortyGigE0/96  routed    down      N/A     N/A         N/A
+Ethernet100  121,122,123,124     100G    N/A    N/A  fortyGigE0/100  routed    down      N/A     N/A         N/A
+Ethernet104      81,82,83,84     100G    N/A    N/A  fortyGigE0/104  routed    down      N/A     N/A         N/A
+Ethernet108      85,86,87,88     100G    N/A    N/A  fortyGigE0/108  routed    down      N/A     N/A         N/A
+Ethernet112      93,94,95,96     100G    N/A    N/A  fortyGigE0/112  routed    down      N/A     N/A         N/A
+Ethernet116      89,90,91,92     100G    N/A    N/A  fortyGigE0/116  routed    down      N/A     N/A         N/A
+Ethernet120  101,102,103,104     100G    N/A    N/A  fortyGigE0/120  routed    down      N/A     N/A         N/A
+Ethernet124     97,98,99,100     100G    N/A    N/A  fortyGigE0/124  routed    down      N/A     N/A         N/A
+
+4. Checking LLDP neighbors on sonic-dut...
+  LLDP not ready yet
+
+5. Checking PTF container interfaces...
+PTF IP addresses:
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0@if530: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 82:01:8c:0e:bb:dc brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.30.30.5/24 brd 172.30.30.255 scope global eth0
+       valid_lft forever preferred_lft forever
+536: eth1@if537: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default
+    link/ether aa:c1:ab:f8:1a:a0 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 10.0.0.4/31 scope global eth1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a8c1:abff:fef8:1aa0/64 scope link
+       valid_lft forever preferred_lft forever
+538: eth2@if539: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default
+    link/ether aa:c1:ab:b6:5c:4e brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 10.0.0.6/31 scope global eth2
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a8c1:abff:feb6:5c4e/64 scope link
+       valid_lft forever preferred_lft forever
+
+PTF link status:
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0@if530: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default
+    link/ether 82:01:8c:0e:bb:dc brd ff:ff:ff:ff:ff:ff link-netnsid 0
+536: eth1@if537: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP mode DEFAULT group default
+    link/ether aa:c1:ab:f8:1a:a0 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+538: eth2@if539: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP mode DEFAULT group default
+    link/ether aa:c1:ab:b6:5c:4e brd ff:ff:ff:ff:ff:ff link-netnsid 1
+
+5b. Checking sonic-mgmt container...
+sonic-mgmt IP addresses:
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0@if528: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 2a:9b:0b:fa:29:4e brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.30.30.3/24 brd 172.30.30.255 scope global eth0
+       valid_lft forever preferred_lft forever
+
+sonic-mgmt connectivity to sonic-dut (172.30.30.4):
+PING 172.30.30.4 (172.30.30.4) 56(84) bytes of data.
+64 bytes from 172.30.30.4: icmp_seq=1 ttl=64 time=0.144 ms
+64 bytes from 172.30.30.4: icmp_seq=2 ttl=64 time=0.069 ms
+64 bytes from 172.30.30.4: icmp_seq=3 ttl=64 time=0.062 ms
+
+--- 172.30.30.4 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2044ms
+rtt min/avg/max/mdev = 0.062/0.091/0.144/0.037 ms
+✓ Success
+
+6. Testing connectivity...
+Ping from sonic-dut to t0 (10.0.0.1):
+PING 10.0.0.1 (10.0.0.1) 56(84) bytes of data.
+64 bytes from 10.0.0.1: icmp_seq=1 ttl=64 time=0.037 ms
+64 bytes from 10.0.0.1: icmp_seq=2 ttl=64 time=0.057 ms
+64 bytes from 10.0.0.1: icmp_seq=3 ttl=64 time=0.052 ms
+
+--- 10.0.0.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2036ms
+rtt min/avg/max/mdev = 0.037/0.048/0.057/0.008 ms
+✓ Success
+
+Ping from sonic-dut to t2 (10.0.0.3):
+PING 10.0.0.3 (10.0.0.3) 56(84) bytes of data.
+64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 time=0.031 ms
+64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 time=0.054 ms
+64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 time=0.038 ms
+
+--- 10.0.0.3 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2047ms
+rtt min/avg/max/mdev = 0.031/0.041/0.054/0.009 ms
+✓ Success
+
+Ping from t0 to sonic-dut (10.0.0.0):
+PING 10.0.0.0 (10.0.0.0) 56(84) bytes of data.
+64 bytes from 10.0.0.0: icmp_seq=1 ttl=64 time=0.030 ms
+64 bytes from 10.0.0.0: icmp_seq=2 ttl=64 time=0.027 ms
+64 bytes from 10.0.0.0: icmp_seq=3 ttl=64 time=0.051 ms
+
+--- 10.0.0.0 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2048ms
+rtt min/avg/max/mdev = 0.027/0.036/0.051/0.010 ms
+✓ Success
+
+Ping from t2 to sonic-dut (10.0.0.2):
+PING 10.0.0.2 (10.0.0.2) 56(84) bytes of data.
+64 bytes from 10.0.0.2: icmp_seq=1 ttl=64 time=0.035 ms
+64 bytes from 10.0.0.2: icmp_seq=2 ttl=64 time=0.031 ms
+64 bytes from 10.0.0.2: icmp_seq=3 ttl=64 time=0.041 ms
+
+--- 10.0.0.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2045ms
+rtt min/avg/max/mdev = 0.031/0.035/0.041/0.004 ms
+✓ Success
+
+7. Checking routing tables...
+Routing table on sonic-dut:
+Codes: K - kernel route, C - connected, S - static, R - RIP,
+       O - OSPF, I - IS-IS, B - BGP, E - EIGRP, N - NHRP,
+       T - Table, v - VNC, V - VNC-Direct, A - Babel, F - PBR,
+       f - OpenFabric,
+       > - selected route, * - FIB route, q - queued, r - rejected, b - backup
+       t - trapped, o - offload failure
+
+K>* 0.0.0.0/0 [0/0] via 172.30.30.1, eth0, 00:01:15
+C>* 10.0.0.0/31 is directly connected, Ethernet0, 00:01:15
+C>* 10.0.0.2/31 is directly connected, Ethernet4, 00:01:15
+C>* 10.0.0.4/31 is directly connected, Ethernet8, 00:01:15
+C>* 10.0.0.6/31 is directly connected, Ethernet12, 00:01:15
+B>* 10.0.1.0/31 [20/0] via 10.0.0.0, Ethernet0, weight 1, 00:01:03
+C>* 172.30.30.0/24 is directly connected, eth0, 00:01:15
+
+Routing table on t0:
+Codes: K - kernel route, C - connected, S - static, R - RIP,
+       O - OSPF, I - IS-IS, B - BGP, E - EIGRP, N - NHRP,
+       T - Table, v - VNC, V - VNC-Direct, A - Babel, F - PBR,
+       f - OpenFabric,
+       > - selected route, * - FIB route, q - queued, r - rejected, b - backup
+       t - trapped, o - offload failure
+
+K>* 0.0.0.0/0 [0/0] via 172.30.30.1, eth0, 00:01:11
+C>* 10.0.0.0/31 is directly connected, Ethernet0, 00:01:11
+B>* 10.0.0.2/31 [20/0] via 10.0.0.1, Ethernet0, weight 1, 00:01:03
+B>* 10.0.0.4/31 [20/0] via 10.0.0.1, Ethernet0, weight 1, 00:01:03
+B>* 10.0.0.6/31 [20/0] via 10.0.0.1, Ethernet0, weight 1, 00:01:03
+C>* 10.0.1.0/31 is directly connected, Ethernet4, 00:01:11
+C>* 172.30.30.0/24 is directly connected, eth0, 00:01:11
+
+Routing table on t2:
+Codes: K - kernel route, C - connected, S - static, R - RIP,
+       O - OSPF, I - IS-IS, B - BGP, E - EIGRP, N - NHRP,
+       T - Table, v - VNC, V - VNC-Direct, A - Babel, F - PBR,
+       f - OpenFabric,
+       > - selected route, * - FIB route, q - queued, r - rejected, b - backup
+       t - trapped, o - offload failure
+
+K>* 0.0.0.0/0 [0/0] via 172.30.30.1, eth0, 00:01:08
+B>* 10.0.0.0/31 [20/0] via 10.0.0.3, Ethernet0, weight 1, 00:01:03
+C>* 10.0.0.2/31 is directly connected, Ethernet0, 00:01:08
+B>* 10.0.0.4/31 [20/0] via 10.0.0.3, Ethernet0, weight 1, 00:01:03
+B>* 10.0.0.6/31 [20/0] via 10.0.0.3, Ethernet0, weight 1, 00:01:03
+C>* 10.0.1.0/31 is directly connected, Ethernet4, 00:01:08
+C>* 172.30.30.0/24 is directly connected, eth0, 00:01:08
+
+8. Docker network status...
+t1-mgmt network details:
+        "Containers": {
+            "4fa2c9315ae2fb3b114055bb46604fdc11d7ec20d970d5f41367aa40bfd627f8": {
+                "Name": "clab-t1-small-sonic-mgmt",
+                "EndpointID": "4a73dbfdcbdaf43d730ffb65139dc3424746a1d3106411ffbb374b9b09d9f0d8",
+                "MacAddress": "2a:9b:0b:fa:29:4e",
+                "IPv4Address": "172.30.30.3/24",
+                "IPv6Address": ""
+            },
+            "556f11055fe124b6a3c85c27957451605cdf7f1aedfd288bcba48f0a2ee1100e": {
+                "Name": "clab-t1-small-sonic-dut",
+                "EndpointID": "bbf4aeb309380190570c1e25ef2b7051b76f971a9dde68ac39b4d7b288fa7cbc",
+                "MacAddress": "c2:2e:48:2f:35:37",
+                "IPv4Address": "172.30.30.2/24",
+                "IPv6Address": ""
+            },
+            "58500209324f833bdd45e905e4487e7aa02d74988faa386d144d447558c25b7c": {
+                "Name": "clab-t1-small-t0",
+                "EndpointID": "64a1e84933e352764c7e0bab9823af397f21b9f2f48dd08724ba360c801b1267",
+                "MacAddress": "f6:d7:77:83:d4:de",
+                "IPv4Address": "172.30.30.4/24",
+                "IPv6Address": ""
+            },
+            "a9ab58b46b7ae20ade9d96c10403586220d54e155b3138af2f1a412059b7ac30": {
+                "Name": "clab-t1-small-t2",
+                "EndpointID": "737e9a3d589eb257b2a3c5f623dcc0e9ebdbac86f4b6e56781f86e54094e2f5a",
+                "MacAddress": "26:cd:82:d8:90:a9",
+                "IPv4Address": "172.30.30.6/24",
+                "IPv6Address": ""
+            },
+            "dc79cab5c7ea812ce4685ebcce132f79d6033fc94011241089e680145cdd69bf": {
+                "Name": "clab-t1-small-ptf",
+                "EndpointID": "114e93241b45dd1d508660dcf26fe6c5110b6035fd5f928eac0eb2e38dfa1da8",
+                "MacAddress": "82:01:8c:0e:bb:dc",
+                "IPv4Address": "172.30.30.5/24",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "com.docker.network.bridge.gateway_mode_ipv4": "nat-unprotected",
+            "com.docker.network.bridge.gateway_mode_ipv6": "nat-unprotected",
+            "com.docker.network.driver.mtu": "0"
+        },
+        "Labels": {
+            "containerlab": ""
+        }
+    }
+]
+
+9. Recent container logs (sonic-dut - last 30 lines)...

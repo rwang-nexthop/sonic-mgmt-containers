@@ -47,7 +47,7 @@ topology:
     # 5. SONiC Management Container
     sonic-mgmt:
       kind: linux
-      image: docker-sonic-mgmt-rwang:master
+      image: sonicdev-microsoft.azurecr.io:443/docker-sonic-mgmt:latest
       binds:
         - /var/run/docker.sock:/var/run/docker.sock
         - ../configs:/configs:ro
