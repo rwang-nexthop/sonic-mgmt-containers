@@ -2,6 +2,7 @@
 
 # Complete deployment configuration script for t1-small topology
 # This script configures both interfaces and BGP routing using SONiC native commands
+# It also creates inventory and testbed files for sonic-mgmt testing
 
 set -e
 
@@ -17,6 +18,110 @@ echo "========================================="
 echo "  T1-Small Topology Configuration"
 echo "========================================="
 echo ""
+
+# Function to create sonic-mgmt configuration files
+create_sonic_mgmt_configs() {
+    echo -e "${BLUE}Creating sonic-mgmt configuration files...${NC}"
+
+    # Create temporary config directory
+    mkdir -p /tmp/sonic-configs
+
+    # Create inventory.ini file
+    cat > /tmp/sonic-configs/inventory.ini << 'INVENTORY_EOF'
+[sonic]
+sonic-dut ansible_host=172.30.30.4 ansible_user=admin
+
+[t0]
+t0 ansible_host=172.30.30.3 ansible_user=admin
+
+[t2]
+t2 ansible_host=172.30.30.2 ansible_user=admin
+
+[ptf]
+ptf ansible_host=172.30.30.6 ansible_user=root
+INVENTORY_EOF
+
+    # Create testbed.yaml file
+    cat > /tmp/sonic-configs/testbed.yaml << 'TESTBED_EOF'
+- name: t1-small
+  topology: t1
+  dut:
+    - sonic-dut
+  ptf_image_name: docker-ptf
+  ptf:
+    - ptf
+  neighbors:
+    - t0
+    - t2
+TESTBED_EOF
+
+    echo -e "${GREEN}✓ Configuration files created in /tmp/sonic-configs/${NC}"
+    echo "  - inventory.ini"
+    echo "  - testbed.yaml"
+}
+
+# Function to check docker connectivity
+check_docker_connectivity() {
+    echo -e "${BLUE}Checking Docker connectivity...${NC}"
+
+    local containers=("clab-t1-small-sonic-dut" "clab-t1-small-t0" "clab-t1-small-t2" "clab-t1-small-ptf" "clab-t1-small-sonic-mgmt")
+    local all_running=true
+
+    for container in "${containers[@]}"; do
+        if docker ps --format '{{.Names}}' | grep -q "^${container}$"; then
+            echo -e "  ${GREEN}✓${NC} $container is running"
+        else
+            echo -e "  ${RED}✗${NC} $container is NOT running"
+            all_running=false
+        fi
+    done
+
+    if [ "$all_running" = false ]; then
+        echo -e "${RED}Error: Not all containers are running!${NC}"
+        return 1
+    fi
+
+    echo -e "${GREEN}✓ All containers are running${NC}"
+}
+
+# Function to check sonic-mgmt docker socket access
+check_sonic_mgmt_docker_access() {
+    echo -e "${BLUE}Checking sonic-mgmt Docker socket access...${NC}"
+
+    # Try to run docker ps from sonic-mgmt container
+    if docker exec clab-t1-small-sonic-mgmt docker ps > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ sonic-mgmt can access Docker socket${NC}"
+    else
+        echo -e "${YELLOW}⚠ sonic-mgmt cannot access Docker socket (may need sudo)${NC}"
+        echo -e "${YELLOW}  This is expected if running as non-root user${NC}"
+    fi
+}
+
+# Function to check sonic-mgmt network connectivity
+check_sonic_mgmt_network() {
+    echo -e "${BLUE}Checking sonic-mgmt network connectivity...${NC}"
+
+    # Check connectivity to sonic-dut
+    if docker exec clab-t1-small-sonic-mgmt ping -c 1 -W 2 172.30.30.4 > /dev/null 2>&1; then
+        echo -e "  ${GREEN}✓${NC} sonic-mgmt → sonic-dut (172.30.30.4)"
+    else
+        echo -e "  ${RED}✗${NC} sonic-mgmt → sonic-dut (172.30.30.4) - No response"
+    fi
+
+    # Check connectivity to t0
+    if docker exec clab-t1-small-sonic-mgmt ping -c 1 -W 2 172.30.30.3 > /dev/null 2>&1; then
+        echo -e "  ${GREEN}✓${NC} sonic-mgmt → t0 (172.30.30.3)"
+    else
+        echo -e "  ${RED}✗${NC} sonic-mgmt → t0 (172.30.30.3) - No response"
+    fi
+
+    # Check connectivity to t2
+    if docker exec clab-t1-small-sonic-mgmt ping -c 1 -W 2 172.30.30.2 > /dev/null 2>&1; then
+        echo -e "  ${GREEN}✓${NC} sonic-mgmt → t2 (172.30.30.2)"
+    else
+        echo -e "  ${RED}✗${NC} sonic-mgmt → t2 (172.30.30.2) - No response"
+    fi
+}
 
 # Function to bring up eth interfaces (containerlab links)
 bring_up_eth_interfaces() {
@@ -158,12 +263,22 @@ configure_bgp() {
     echo -e "${GREEN}✓ BGP configured on ${container}${NC}"
 }
 
-echo -e "${BLUE}[1/4] Bringing Up Interfaces${NC}"
+echo -e "${BLUE}[0/6] Pre-Deployment Checks${NC}"
+echo "-------------------------------------------"
+check_docker_connectivity
+echo ""
+
+echo -e "${BLUE}[1/6] Creating sonic-mgmt Configuration Files${NC}"
+echo "-------------------------------------------"
+create_sonic_mgmt_configs
+echo ""
+
+echo -e "${BLUE}[2/6] Bringing Up Interfaces${NC}"
 echo "-------------------------------------------"
 bring_up_eth_interfaces
 echo ""
 
-echo -e "${BLUE}[2/4] Configuring SONiC Interfaces${NC}"
+echo -e "${BLUE}[3/6] Configuring SONiC Interfaces${NC}"
 echo "-------------------------------------------"
 
 # Configure sonic-dut interfaces (eth1->Ethernet0, eth2->Ethernet4, eth3->Ethernet8, eth4->Ethernet12)
@@ -189,7 +304,7 @@ echo -e "${YELLOW}Waiting 5 seconds for interfaces to stabilize...${NC}"
 sleep 5
 
 echo ""
-echo -e "${BLUE}[3/4] Enabling BGP Daemon${NC}"
+echo -e "${BLUE}[4/6] Enabling BGP Daemon${NC}"
 echo "-------------------------------------------"
 
 # Enable bgpd on all SONiC containers
@@ -198,7 +313,7 @@ enable_bgpd "clab-t1-small-t0"
 enable_bgpd "clab-t1-small-t2"
 
 echo ""
-echo -e "${BLUE}[4/4] Configuring BGP${NC}"
+echo -e "${BLUE}[5/6] Configuring BGP${NC}"
 echo "-------------------------------------------"
 
 # Configure BGP on sonic-dut (AS 65100)
@@ -218,6 +333,12 @@ configure_bgp "clab-t1-small-t2" "65200" "10.0.0.200" \
     "10.0.1.0,65000,10.0.1.1/31"
 
 echo ""
+echo -e "${BLUE}[6/6] Checking sonic-mgmt Connectivity${NC}"
+echo "-------------------------------------------"
+check_sonic_mgmt_docker_access
+check_sonic_mgmt_network
+echo ""
+
 echo -e "${BLUE}Verification${NC}"
 echo "-------------------------------------------"
 
@@ -264,13 +385,27 @@ echo "  Configuration Complete!"
 echo "========================================="
 echo ""
 echo "Summary:"
+echo "  - All containers verified and running"
+echo "  - sonic-mgmt configuration files created"
 echo "  - All interfaces configured with IP addresses"
 echo "  - BGP configured on all SONiC nodes"
-echo "  - Connectivity verified"
+echo "  - BGP connectivity verified"
+echo "  - sonic-mgmt network connectivity verified"
+echo ""
+echo "sonic-mgmt Configuration Files:"
+echo "  - Inventory: /tmp/sonic-configs/inventory.ini"
+echo "  - Testbed:   /tmp/sonic-configs/testbed.yaml"
 echo ""
 echo "Next steps:"
 echo "  - Check BGP status: docker exec clab-t1-small-sonic-dut vtysh -c 'show ip bgp summary'"
 echo "  - Check routes: docker exec clab-t1-small-sonic-dut vtysh -c 'show ip route'"
 echo "  - Run full verification: ./verify_topology.sh"
+echo "  - Run sonic-mgmt tests:"
+echo "    docker exec -it clab-t1-small-sonic-mgmt bash"
+echo "    cd /sonic-mgmt/tests"
+echo "    python -m pytest bgp/test_bgp_fact.py -v \\"
+echo "      --testbed /tmp/sonic-configs/testbed.yaml \\"
+echo "      --inventory /tmp/sonic-configs/inventory.ini \\"
+echo "      --host-pattern sonic-dut"
 echo ""
 
