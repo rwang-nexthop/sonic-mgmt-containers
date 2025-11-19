@@ -118,22 +118,34 @@ tests/
 ```bash
 # Run single test
 python -m pytest bgp/test_bgp_fact.py -v \
-  --inventory /configs/inventory.ini \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 
 # Run test category
 python -m pytest bgp/ -v \
-  --inventory /configs/inventory.ini \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 
 # Run with specific marker
 python -m pytest -v -m "topology_t1" \
-  --inventory /configs/inventory.ini \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 ```
 
 ### Test Markers
 ```bash
+# Example with markers (always include --testbed, --testbed_file, and --inventory)
+python -m pytest -v -m "topology_t1" \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini
+
 # Topology markers
 -m "topology_t0"        # T0 topology tests
 -m "topology_t1"        # T1 topology tests
@@ -215,26 +227,36 @@ def test_config_reload(duthosts, enum_frontend_dut_hostname):
 ```bash
 # Very verbose with local variables
 python -m pytest bgp/test_bgp_fact.py -vv --showlocals \
-  --inventory /configs/inventory.ini --host-pattern sonic-dut
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini --host-pattern sonic-dut
 
 # Short traceback
 python -m pytest bgp/test_bgp_fact.py -v --tb=short \
-  --inventory /configs/inventory.ini --host-pattern sonic-dut
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini --host-pattern sonic-dut
 
 # Full traceback
 python -m pytest bgp/test_bgp_fact.py -v --tb=long \
-  --inventory /configs/inventory.ini --host-pattern sonic-dut
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini --host-pattern sonic-dut
 ```
 
 ### Collect Tests Without Running
 ```bash
 # List all tests
 python -m pytest bgp/ --collect-only \
-  --inventory /configs/inventory.ini
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini
 
 # List tests matching pattern
 python -m pytest bgp/ --collect-only -k "session" \
-  --inventory /configs/inventory.ini
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini
 ```
 
 ## Test Categories Available
@@ -414,7 +436,7 @@ If containers are running and pings work, you're ready to run tests.
 
 ### Step 4: Run Tests
 
-Now you can run the actual tests. Replace `/tmp/sonic-configs` with `/configs` if using Option B.
+Now you can run the actual tests. Both `--testbed` (testbed name) and `--testbed_file` (testbed file path) are **REQUIRED** for pytest to work correctly.
 
 **Quick BGP Test (Recommended First Test)**:
 ```bash
@@ -423,6 +445,8 @@ cd /sonic-mgmt/tests
 
 # Run BGP fact test - gathers BGP neighbor information
 python -m pytest bgp/test_bgp_fact.py -v \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 ```
@@ -430,6 +454,8 @@ python -m pytest bgp/test_bgp_fact.py -v \
 **Run All BGP Tests**:
 ```bash
 python -m pytest bgp/ -v \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 ```
@@ -437,6 +463,8 @@ python -m pytest bgp/ -v \
 **Run Interface Tests**:
 ```bash
 python -m pytest interface/ -v \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 ```
@@ -444,6 +472,8 @@ python -m pytest interface/ -v \
 **Run Routing Tests**:
 ```bash
 python -m pytest route/ -v \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 ```
@@ -451,6 +481,8 @@ python -m pytest route/ -v \
 **Run System Health Tests**:
 ```bash
 python -m pytest system_health/ -v \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini \
   --host-pattern sonic-dut
 ```
@@ -507,33 +539,50 @@ cd ~/sonic-mgmt-containers/sonic-mgmt-vs/scripts
 
 1. **Filter tests by name**: Use `-k` flag
    ```bash
-   pytest bgp/ -k "session" -v --inventory /configs/inventory.ini
+   pytest bgp/ -k "session" -v \
+     --testbed t1-small \
+     --testbed_file /tmp/sonic-configs/testbed.yaml \
+     --inventory /tmp/sonic-configs/inventory.ini
    ```
 
 2. **Stop on first failure**: Use `-x` flag
    ```bash
-   pytest bgp/ -x -v --inventory /configs/inventory.ini
+   pytest bgp/ -x -v \
+     --testbed t1-small \
+     --testbed_file /tmp/sonic-configs/testbed.yaml \
+     --inventory /tmp/sonic-configs/inventory.ini
    ```
 
 3. **Run N tests**: Use `--maxfail=N`
    ```bash
-   pytest bgp/ --maxfail=3 -v --inventory /configs/inventory.ini
+   pytest bgp/ --maxfail=3 -v \
+     --testbed t1-small \
+     --testbed_file /tmp/sonic-configs/testbed.yaml \
+     --inventory /tmp/sonic-configs/inventory.ini
    ```
 
 4. **Save output**: Redirect to file
    ```bash
-   pytest bgp/ -v --inventory /configs/inventory.ini > test_results.log 2>&1
+   pytest bgp/ -v \
+     --testbed t1-small \
+     --testbed_file /tmp/sonic-configs/testbed.yaml \
+     --inventory /tmp/sonic-configs/inventory.ini > test_results.log 2>&1
    ```
 
 5. **Parallel execution**: Use pytest-xdist
    ```bash
-   pytest bgp/ -n auto -v --inventory /configs/inventory.ini
+   pytest bgp/ -n auto -v \
+     --testbed t1-small \
+     --testbed_file /tmp/sonic-configs/testbed.yaml \
+     --inventory /tmp/sonic-configs/inventory.ini
    ```
 
 6. **Verbose debugging**: Show local variables
    ```bash
    pytest bgp/test_bgp_fact.py -vv --showlocals \
-     --inventory /configs/inventory.ini
+     --testbed t1-small \
+     --testbed_file /tmp/sonic-configs/testbed.yaml \
+     --inventory /tmp/sonic-configs/inventory.ini
    ```
 
 ## Architecture Overview
@@ -569,6 +618,47 @@ cd ~/sonic-mgmt-containers/sonic-mgmt-vs/scripts
 ```
 
 ## Troubleshooting
+
+### AttributeError: 'NoneType' object has no attribute 'endswith'
+
+**Problem**: You see this error when running pytest:
+```
+AttributeError: 'NoneType' object has no attribute 'endswith'
+```
+
+**Cause**: Missing or incorrect pytest parameters. The `--testbed` and `--testbed_file` parameters are **REQUIRED**.
+
+**Solution**: Make sure you're using BOTH parameters:
+
+```bash
+# ❌ WRONG - Missing --testbed_file
+python -m pytest bgp/test_bgp_fact.py -v \
+  --inventory /tmp/sonic-configs/inventory.ini
+
+# ✅ CORRECT - Include both parameters
+python -m pytest bgp/test_bgp_fact.py -v \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini \
+  --host-pattern sonic-dut
+```
+
+**Key Points**:
+- `--testbed t1-small` = The testbed NAME (from the "name:" field in testbed.yaml)
+- `--testbed_file /tmp/sonic-configs/testbed.yaml` = The testbed FILE PATH
+- Both are required by the sonic-mgmt framework
+
+### Config Files Not Found
+
+**Problem**: You see `/tmp/sonic-configs/: No such file or directory`
+
+**Cause**: The `deploy_config.sh` script hasn't been run yet.
+
+**Solution**:
+1. Exit the sonic-mgmt container: `exit`
+2. Run the deploy script: `cd ~/sonic-mgmt-containers/sonic-mgmt-vs/scripts && ./deploy_config.sh`
+3. Re-enter the container: `docker exec -it clab-t1-small-sonic-mgmt bash`
+4. Run tests with correct parameters
 
 ### SSH Connection Refused Errors (NORMAL - Don't Worry!)
 
@@ -619,24 +709,36 @@ If these commands work, your containers are accessible and tests will run fine.
 ```bash
 # Show last 50 lines of test output
 pytest bgp/test_bgp_fact.py -v --tb=short \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini | tail -50
 
 # Full traceback
 pytest bgp/test_bgp_fact.py -v --tb=long \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini
 
 # Run with verbose debugging
 pytest bgp/test_bgp_fact.py -vv --showlocals \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
   --inventory /tmp/sonic-configs/inventory.ini
 ```
 
 ### Verify Testbed Configuration
 ```bash
 # List all available tests
-pytest --collect-only --inventory /tmp/sonic-configs/inventory.ini
+pytest --collect-only \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini
 
 # List tests matching pattern
-pytest --collect-only -k "bgp" --inventory /tmp/sonic-configs/inventory.ini
+pytest --collect-only -k "bgp" \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini
 ```
 
 ### Common Issues and Solutions

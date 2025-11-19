@@ -23,11 +23,11 @@ echo ""
 create_sonic_mgmt_configs() {
     echo -e "${BLUE}Creating sonic-mgmt configuration files...${NC}"
 
-    # Create temporary config directory
-    mkdir -p /tmp/sonic-configs
+    # Create temporary config directory INSIDE sonic-mgmt container
+    docker exec clab-t1-small-sonic-mgmt mkdir -p /tmp/sonic-configs
 
-    # Create inventory.ini file
-    cat > /tmp/sonic-configs/inventory.ini << 'INVENTORY_EOF'
+    # Create inventory.ini file INSIDE sonic-mgmt container
+    docker exec clab-t1-small-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/inventory.ini << '\''INVENTORY_EOF'\''
 [sonic]
 sonic-dut ansible_host=172.30.30.4 ansible_user=admin
 
@@ -39,10 +39,10 @@ t2 ansible_host=172.30.30.2 ansible_user=admin
 
 [ptf]
 ptf ansible_host=172.30.30.6 ansible_user=root
-INVENTORY_EOF
+INVENTORY_EOF'
 
-    # Create testbed.yaml file
-    cat > /tmp/sonic-configs/testbed.yaml << 'TESTBED_EOF'
+    # Create testbed.yaml file INSIDE sonic-mgmt container
+    docker exec clab-t1-small-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/testbed.yaml << '\''TESTBED_EOF'\''
 - name: t1-small
   topology: t1
   dut:
@@ -53,9 +53,9 @@ INVENTORY_EOF
   neighbors:
     - t0
     - t2
-TESTBED_EOF
+TESTBED_EOF'
 
-    echo -e "${GREEN}✓ Configuration files created in /tmp/sonic-configs/${NC}"
+    echo -e "${GREEN}✓ Configuration files created in sonic-mgmt container at /tmp/sonic-configs/${NC}"
     echo "  - inventory.ini"
     echo "  - testbed.yaml"
 }
