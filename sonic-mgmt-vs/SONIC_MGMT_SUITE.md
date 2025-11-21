@@ -648,6 +648,29 @@ python -m pytest bgp/test_bgp_fact.py -v \
 - `--testbed_file /tmp/sonic-configs/testbed.yaml` = The testbed FILE PATH
 - Both are required by the sonic-mgmt framework
 
+### Host unreachable in the inventory
+
+**Problem**: You see this error when running pytest:
+```
+[WARNING]: Unable to parse /sonic-mgmt/ansible/sonic as an inventory source
+[WARNING]: No inventory was parsed, only implicit localhost is available
+...
+AnsibleConnectionFailure: Host unreachable in the inventory
+```
+
+**Cause**: Ansible can't find the inventory file because:
+1. The `inv_name` field in testbed.yaml tells Ansible which inventory file to use
+2. Ansible looks for it in `/sonic-mgmt/ansible/{inv_name}`
+3. If `inv_name: sonic`, Ansible looks for `/sonic-mgmt/ansible/sonic`
+4. If that file doesn't exist, Ansible can't resolve hostnames
+
+**Solution**: The deploy script now:
+1. Creates the inventory file in `/sonic-mgmt/ansible/t1-small` (where Ansible expects it)
+2. Sets `inv_name: t1-small` in testbed.yaml (matches the inventory file name)
+3. Also copies it to `/tmp/sonic-configs/inventory.ini` for reference
+
+The key is that `inv_name` must match the inventory file name in `/sonic-mgmt/ansible/`.
+
 ### KeyError: 'tg_api_server'
 
 **Problem**: You see this error when running pytest:
@@ -661,7 +684,7 @@ KeyError: 'tg_api_server'
 
 Your testbed.yaml was using the NEW format but sonic-mgmt expects the OLD format.
 
-**Solution**: The deploy script now creates the correct OLD format:
+**Solution**: The deploy script now creates the correct OLD format with proper `inv_name`:
 ```yaml
 - conf-name: t1-small
   group-name: t1-small-group
@@ -672,7 +695,7 @@ Your testbed.yaml was using the NEW format but sonic-mgmt expects the OLD format
   server: localhost
   dut:
     - sonic-dut
-  inv_name: sonic
+  inv_name: t1-small
   auto_recover: 'False'
   comment: t1-small topology for sonic-mgmt testing
 ```

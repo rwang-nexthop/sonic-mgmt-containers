@@ -26,8 +26,9 @@ create_sonic_mgmt_configs() {
     # Create temporary config directory INSIDE sonic-mgmt container
     docker exec clab-t1-small-sonic-mgmt mkdir -p /tmp/sonic-configs
 
-    # Create inventory.ini file INSIDE sonic-mgmt container
-    docker exec clab-t1-small-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/inventory.ini << '\''INVENTORY_EOF'\''
+    # Create inventory file INSIDE sonic-mgmt container
+    # Note: Ansible looks for inventory files in /sonic-mgmt/ansible/ directory
+    docker exec clab-t1-small-sonic-mgmt bash -c 'cat > /sonic-mgmt/ansible/t1-small << '\''INVENTORY_EOF'\''
 [sonic]
 sonic-dut ansible_host=172.30.30.4 ansible_user=admin
 
@@ -41,6 +42,10 @@ t2 ansible_host=172.30.30.2 ansible_user=admin
 ptf ansible_host=172.30.30.6 ansible_user=root
 INVENTORY_EOF'
 
+    # Also create a copy in /tmp/sonic-configs for reference
+    docker exec clab-t1-small-sonic-mgmt mkdir -p /tmp/sonic-configs
+    docker exec clab-t1-small-sonic-mgmt cp /sonic-mgmt/ansible/t1-small /tmp/sonic-configs/inventory.ini
+
     # Create testbed.yaml file INSIDE sonic-mgmt container
     docker exec clab-t1-small-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/testbed.yaml << '\''TESTBED_EOF'\''
 - conf-name: t1-small
@@ -53,7 +58,7 @@ INVENTORY_EOF'
   vm_base:
   dut:
     - sonic-dut
-  inv_name: sonic
+  inv_name: t1-small
   auto_recover: '\''False'\''
   comment: t1-small topology for sonic-mgmt testing
 TESTBED_EOF'
