@@ -617,6 +617,54 @@ cd ~/sonic-mgmt-containers/sonic-mgmt-vs/scripts
 └─────────────────────────────────────────────────────────┘
 ```
 
+## Quick Start Guide
+
+After deploying the topology with `./deploy_config.sh`, follow these steps to run tests:
+
+### Step 1: Copy Inventory File to Ansible Directory
+
+```bash
+# Enter the sonic-mgmt container
+docker exec -it clab-t1-small-sonic-mgmt bash
+
+# Copy the inventory file to where Ansible expects it
+sudo cp /tmp/sonic-configs/inventory.ini /sonic-mgmt/ansible/lab
+
+# Verify it was created
+ls -la /sonic-mgmt/ansible/lab
+
+# Exit the container
+exit
+```
+
+### Step 2: Run Your Test
+
+```bash
+# Enter the sonic-mgmt container
+docker exec -it clab-t1-small-sonic-mgmt bash
+
+# Navigate to tests directory
+cd /sonic-mgmt/tests
+
+# Run the test
+python -m pytest bgp/test_bgp_fact.py -v \
+  --testbed t1-small \
+  --testbed_file /tmp/sonic-configs/testbed.yaml \
+  --inventory /tmp/sonic-configs/inventory.ini \
+  --host-pattern sonic-dut
+```
+
+### Step 3: Verify Success
+
+You should see:
+- ✅ Testbed loaded successfully
+- ✅ Inventory parsed successfully
+- ✅ Connection to sonic-dut established
+- ✅ BGP facts gathered
+- ✅ Test passed or failed (but not errored)
+
+---
+
 ## Troubleshooting
 
 ### AttributeError: 'NoneType' object has no attribute 'endswith'
@@ -661,15 +709,36 @@ AnsibleConnectionFailure: Host unreachable in the inventory
 **Cause**: Ansible can't find the inventory file because:
 1. The `inv_name` field in testbed.yaml tells Ansible which inventory file to use
 2. Ansible looks for it in `/sonic-mgmt/ansible/{inv_name}`
-3. If `inv_name: sonic`, Ansible looks for `/sonic-mgmt/ansible/sonic`
-4. If that file doesn't exist, Ansible can't resolve hostnames
+3. If the file doesn't exist, Ansible can't resolve hostnames
 
-**Solution**: The deploy script now:
-1. Creates the inventory file in `/sonic-mgmt/ansible/t1-small` (where Ansible expects it)
-2. Sets `inv_name: t1-small` in testbed.yaml (matches the inventory file name)
-3. Also copies it to `/tmp/sonic-configs/inventory.ini` for reference
+**Solution**:
 
-The key is that `inv_name` must match the inventory file name in `/sonic-mgmt/ansible/`.
+The deploy script creates the inventory file at `/tmp/sonic-configs/inventory.ini`. To make Ansible find it, you need to copy it to `/sonic-mgmt/ansible/` with the name matching the `inv_name` field in testbed.yaml.
+
+**Manual Steps** (run these AFTER running the deploy script):
+
+1. Enter the sonic-mgmt container:
+   ```bash
+   docker exec -it clab-t1-small-sonic-mgmt bash
+   ```
+
+2. Copy the inventory file to the Ansible directory:
+   ```bash
+   sudo cp /tmp/sonic-configs/inventory.ini /sonic-mgmt/ansible/lab
+   ```
+
+3. Verify it was created:
+   ```bash
+   ls -la /sonic-mgmt/ansible/lab
+   cat /sonic-mgmt/ansible/lab
+   ```
+
+4. Exit the container:
+   ```bash
+   exit
+   ```
+
+**Why this works**: The testbed.yaml has `inv_name: lab`, so Ansible looks for `/sonic-mgmt/ansible/lab`. By copying the inventory file there, Ansible can find it and resolve hostnames.
 
 ### KeyError: 'tg_api_server'
 
