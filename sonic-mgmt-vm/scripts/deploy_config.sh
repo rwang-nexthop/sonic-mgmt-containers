@@ -29,16 +29,23 @@ create_sonic_mgmt_configs() {
     # Create inventory file INSIDE sonic-mgmt container in /tmp/sonic-configs
     docker exec clab-t1-small-vm-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/inventory.ini << '\''INVENTORY_EOF'\''
 [sonic]
-sonic-dut ansible_host=172.30.30.4 ansible_user=admin ansible_password=admin ansible_connection=ssh
+sonic-dut ansible_host=172.30.30.4 ansible_user=admin ansible_password=admin \
+  ansible_connection=ssh ansible_become=yes ansible_become_method=sudo \
+  ansible_become_user=root ansible_become_pass=admin
 
 [t0]
-t0 ansible_host=172.30.30.3 ansible_user=admin ansible_password=admin ansible_connection=ssh
+t0 ansible_host=172.30.30.3 ansible_user=admin ansible_password=admin \
+  ansible_connection=ssh ansible_become=yes ansible_become_method=sudo \
+  ansible_become_user=root ansible_become_pass=admin
 
 [t2]
-t2 ansible_host=172.30.30.2 ansible_user=admin ansible_password=admin ansible_connection=ssh
+t2 ansible_host=172.30.30.2 ansible_user=admin ansible_password=admin \
+  ansible_connection=ssh ansible_become=yes ansible_become_method=sudo \
+  ansible_become_user=root ansible_become_pass=admin
 
 [ptf]
-ptf ansible_host=172.30.30.5 ansible_user=root ansible_password=root ansible_connection=ssh
+ptf ansible_host=172.30.30.5 ansible_user=root ansible_password=root \
+  ansible_connection=ssh
 INVENTORY_EOF'
 
     # Create testbed.yaml file INSIDE sonic-mgmt container
@@ -46,15 +53,17 @@ INVENTORY_EOF'
 - conf-name: t1-small
   group-name: t1-small-group
   topo: t1
+  topo_name: t1-small-vm
   ptf_image_name: docker-ptf
   ptf: ptf
-  ptf_ip: 172.30.30.6/24
+  ptf_ip: 172.30.30.5/24
   server: localhost
   vm_base:
   dut:
     - sonic-dut
   inv_name: lab
   auto_recover: '\''False'\''
+  neighbor_type: sonic
   comment: t1-small-vm topology for sonic-mgmt testing
 TESTBED_EOF'
 
@@ -87,6 +96,31 @@ check_docker_connectivity() {
     echo -e "${GREEN}✓ All containers are running${NC}"
 }
 
+# Function to fix cache permissions
+fix_cache_permissions() {
+    echo -e "${BLUE}Fixing cache permissions...${NC}"
+
+    docker exec clab-t1-small-vm-sonic-mgmt bash -c 'chmod -R 777 /sonic-mgmt/tests/.pytest_cache 2>/dev/null || true'
+    docker exec clab-t1-small-vm-sonic-mgmt bash -c 'chmod -R 777 /sonic-mgmt/tests/_cache 2>/dev/null || true'
+
+    echo -e "${GREEN}✓ Cache permissions fixed${NC}"
+}
+
+# Function to create ansible.cfg
+create_ansible_config() {
+    echo -e "${BLUE}Creating ansible.cfg...${NC}"
+
+    docker exec clab-t1-small-vm-sonic-mgmt bash -c 'cat > /sonic-mgmt/ansible/ansible.cfg << '\''ANSIBLE_EOF'\''
+[defaults]
+library = /sonic-mgmt/tests/library:/sonic-mgmt/ansible/library
+host_key_checking = False
+deprecation_warnings = False
+inventory = /sonic-mgmt/ansible/lab
+ANSIBLE_EOF'
+
+    echo -e "${GREEN}✓ ansible.cfg created${NC}"
+}
+
 # Function to check sonic-mgmt network connectivity
 check_sonic_mgmt_network() {
     echo -e "${BLUE}Checking sonic-mgmt network connectivity...${NC}"
@@ -99,17 +133,27 @@ check_sonic_mgmt_network() {
     fi
 }
 
-echo -e "${BLUE}[0/2] Pre-Deployment Checks${NC}"
+echo -e "${BLUE}[0/4] Pre-Deployment Checks${NC}"
 echo "-------------------------------------------"
 check_docker_connectivity
 echo ""
 
-echo -e "${BLUE}[1/2] Creating sonic-mgmt Configuration Files${NC}"
+echo -e "${BLUE}[1/4] Creating sonic-mgmt Configuration Files${NC}"
 echo "-------------------------------------------"
 create_sonic_mgmt_configs
 echo ""
 
-echo -e "${BLUE}[2/2] Checking sonic-mgmt Connectivity${NC}"
+echo -e "${BLUE}[2/4] Fixing Cache Permissions${NC}"
+echo "-------------------------------------------"
+fix_cache_permissions
+echo ""
+
+echo -e "${BLUE}[3/4] Creating Ansible Configuration${NC}"
+echo "-------------------------------------------"
+create_ansible_config
+echo ""
+
+echo -e "${BLUE}[4/4] Checking sonic-mgmt Connectivity${NC}"
 echo "-------------------------------------------"
 check_sonic_mgmt_network
 echo ""
@@ -125,21 +169,30 @@ echo ""
 echo "Summary:"
 echo "  - All containers verified and running"
 echo "  - sonic-mgmt configuration files created"
+echo "  - Cache permissions fixed"
+echo "  - Ansible configuration created"
 echo ""
 echo "sonic-mgmt Configuration Files:"
-echo "  - Inventory: /tmp/sonic-configs/inventory.ini"
-echo "  - Testbed:   /tmp/sonic-configs/testbed.yaml"
+echo "  - Inventory:   /tmp/sonic-configs/inventory.ini"
+echo "  - Testbed:     /tmp/sonic-configs/testbed.yaml"
+echo "  - Ansible cfg: /sonic-mgmt/ansible/ansible.cfg"
 echo ""
 echo "Next steps:"
-echo "  - Enter sonic-mgmt container:"
-echo "    docker exec -it clab-t1-small-vm-sonic-mgmt bash"
-echo "  - Copy inventory to ansible:"
-echo "    sudo cp /tmp/sonic-configs/inventory.ini /sonic-mgmt/ansible/lab"
-echo "  - Run sonic-mgmt tests:"
-echo "    cd /sonic-mgmt/tests"
-echo "    python -m pytest bgp/test_bgp_fact.py -v \\"
-echo "      --testbed /tmp/sonic-configs/testbed.yaml \\"
-echo "      --inventory /tmp/sonic-configs/inventory.ini \\"
-echo "      --host-pattern sonic-dut"
+echo "  1. Enter sonic-mgmt container:"
+echo "     docker exec -it clab-t1-small-vm-sonic-mgmt bash"
+echo ""
+echo "  2. Copy inventory to ansible:"
+echo "     sudo cp /tmp/sonic-configs/inventory.ini /sonic-mgmt/ansible/lab"
+echo ""
+echo "  3. Verify Ansible connectivity:"
+echo "     cd /sonic-mgmt/ansible"
+echo "     ansible -i lab sonic-dut -m ping"
+echo ""
+echo "  4. Run sonic-mgmt tests:"
+echo "     cd /sonic-mgmt/tests"
+echo "     python -m pytest bgp/test_bgp_fact.py -v \\"
+echo "       --testbed /tmp/sonic-configs/testbed.yaml \\"
+echo "       --inventory /tmp/sonic-configs/inventory.ini \\"
+echo "       --host-pattern sonic-dut"
 echo ""
 
