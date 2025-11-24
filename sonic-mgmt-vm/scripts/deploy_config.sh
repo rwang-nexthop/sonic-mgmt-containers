@@ -110,13 +110,14 @@ fix_cache_permissions() {
 create_ansible_config() {
     echo -e "${BLUE}Creating ansible.cfg...${NC}"
 
-    docker exec clab-t1-small-vm-sonic-mgmt bash -c 'cat > /sonic-mgmt/ansible/ansible.cfg << '\''ANSIBLE_EOF'\''
+    docker exec clab-t1-small-vm-sonic-mgmt bash -c 'sudo bash -c '\''cat > /sonic-mgmt/ansible/ansible.cfg << ANSIBLE_EOF
 [defaults]
 library = /sonic-mgmt/tests/library:/sonic-mgmt/ansible/library
 host_key_checking = False
 deprecation_warnings = False
 inventory = /sonic-mgmt/ansible/lab
-ANSIBLE_EOF'
+ANSIBLE_EOF
+'\'''
 
     echo -e "${GREEN}✓ ansible.cfg created${NC}"
 }
