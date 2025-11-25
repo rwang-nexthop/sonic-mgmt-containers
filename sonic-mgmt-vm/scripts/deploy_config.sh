@@ -29,23 +29,16 @@ create_sonic_mgmt_configs() {
     # Create inventory file INSIDE sonic-mgmt container in /tmp/sonic-configs
     docker exec clab-t1-small-vm-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/inventory.ini << '\''INVENTORY_EOF'\''
 [sonic]
-sonic-dut ansible_host=172.30.30.4 ansible_user=admin ansible_password=admin \
-  ansible_connection=ssh ansible_become=yes ansible_become_method=sudo \
-  ansible_become_user=root ansible_become_pass=admin
+sonic-dut ansible_host=172.30.30.4 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
 
 [t0]
-t0 ansible_host=172.30.30.3 ansible_user=admin ansible_password=admin \
-  ansible_connection=ssh ansible_become=yes ansible_become_method=sudo \
-  ansible_become_user=root ansible_become_pass=admin
+t0 ansible_host=172.30.30.3 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
 
 [t2]
-t2 ansible_host=172.30.30.2 ansible_user=admin ansible_password=admin \
-  ansible_connection=ssh ansible_become=yes ansible_become_method=sudo \
-  ansible_become_user=root ansible_become_pass=admin
+t2 ansible_host=172.30.30.2 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
 
 [ptf]
-ptf ansible_host=172.30.30.5 ansible_user=root ansible_password=root \
-  ansible_connection=ssh
+ptf ansible_host=172.30.30.5 ansible_user=root ansible_password=root ansible_connection=ssh
 INVENTORY_EOF'
 
     # Create testbed.yaml file INSIDE sonic-mgmt container
