@@ -68,7 +68,9 @@
     "ALLOW_ALL": {}
   },
   "BGP_NETWORK": {
-    "default|192.168.0.0/24": {}
+    "default|10.0.0.100/32": {},
+    "default|10.0.0.0/31": {},
+    "default|10.0.1.0/31": {}
   },
   "DEVICE_NEIGHBOR": {}
 }

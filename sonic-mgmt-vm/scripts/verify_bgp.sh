@@ -56,10 +56,10 @@ echo "-------------------------------------------"
 bgp_established=0
 for container in "${CONTAINERS[@]}"; do
     echo -e "${YELLOW}$container BGP Summary:${NC}"
-    docker exec $container vtysh -c "show ip bgp summary" 2>/dev/null || echo "  BGP not ready yet"
-    
+    docker exec $container /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null || echo "  BGP not ready yet"
+
     # Count established neighbors
-    established=$(docker exec $container vtysh -c "show ip bgp summary" 2>/dev/null | grep -c "Established" || echo "0")
+    established=$(docker exec $container /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null | grep -c "Established" || echo "0")
     expected=${EXPECTED_NEIGHBORS[$container]}
     
     if [ "$established" -eq "$expected" ]; then
@@ -79,7 +79,7 @@ echo "-------------------------------------------"
 
 for container in "${CONTAINERS[@]}"; do
     echo -e "${YELLOW}$container BGP Routes:${NC}"
-    docker exec $container vtysh -c "show ip bgp" 2>/dev/null | head -15 || echo "  Routes not ready yet"
+    docker exec $container /usr/bin/vtysh -c "show ip bgp" 2>/dev/null | head -15 || echo "  Routes not ready yet"
     echo ""
 done
 

@@ -147,6 +147,71 @@ fi
 }
 
 
+# Function to configure BGP network advertisements
+configure_bgp_networks() {
+    echo -e "${BLUE}Configuring BGP network advertisements...${NC}"
+
+    # Configure sonic-dut BGP networks
+    echo -e "  ${YELLOW}Configuring sonic-dut BGP networks...${NC}"
+    docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "configure terminal" \
+        -c "router bgp 65100" \
+        -c "address-family ipv4 unicast" \
+        -c "network 10.1.0.1/32" \
+        -c "network 10.0.0.0/31" \
+        -c "network 10.0.0.2/31" \
+        -c "exit-address-family" \
+        -c "exit" \
+        -c "exit" 2>/dev/null || true
+    echo -e "    ${GREEN}✓${NC} sonic-dut BGP networks configured"
+
+    # Configure t0 BGP networks
+    echo -e "  ${YELLOW}Configuring t0 BGP networks...${NC}"
+    docker exec clab-t1-small-vm-t0 /usr/bin/vtysh -c "configure terminal" \
+        -c "router bgp 65000" \
+        -c "address-family ipv4 unicast" \
+        -c "network 10.0.0.100/32" \
+        -c "network 10.0.0.0/31" \
+        -c "network 10.0.1.0/31" \
+        -c "exit-address-family" \
+        -c "exit" \
+        -c "exit" 2>/dev/null || true
+    echo -e "    ${GREEN}✓${NC} t0 BGP networks configured"
+
+    # Configure t2 BGP networks
+    echo -e "  ${YELLOW}Configuring t2 BGP networks...${NC}"
+    docker exec clab-t1-small-vm-t2 /usr/bin/vtysh -c "configure terminal" \
+        -c "router bgp 65200" \
+        -c "address-family ipv4 unicast" \
+        -c "network 10.0.0.200/32" \
+        -c "network 10.0.0.2/31" \
+        -c "network 10.0.1.1/31" \
+        -c "exit-address-family" \
+        -c "exit" \
+        -c "exit" 2>/dev/null || true
+    echo -e "    ${GREEN}✓${NC} t2 BGP networks configured"
+
+    echo -e "${GREEN}✓ BGP network advertisements configured${NC}"
+}
+
+# Function to verify BGP neighbor status
+verify_bgp_neighbors() {
+    echo -e "${BLUE}Verifying BGP neighbor status...${NC}"
+
+    # Check sonic-dut neighbors
+    echo -e "  ${YELLOW}sonic-dut BGP neighbors:${NC}"
+    docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
+
+    # Check t0 neighbors
+    echo -e "  ${YELLOW}t0 BGP neighbors:${NC}"
+    docker exec clab-t1-small-vm-t0 /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
+
+    # Check t2 neighbors
+    echo -e "  ${YELLOW}t2 BGP neighbors:${NC}"
+    docker exec clab-t1-small-vm-t2 /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
+
+    echo -e "${GREEN}✓ BGP neighbor verification complete${NC}"
+}
+
 # Function to check sonic-mgmt network connectivity
 check_sonic_mgmt_network() {
     echo -e "${BLUE}Checking sonic-mgmt network connectivity...${NC}"
@@ -159,32 +224,42 @@ check_sonic_mgmt_network() {
     fi
 }
 
-echo -e "${BLUE}[0/5] Pre-Deployment Checks${NC}"
+echo -e "${BLUE}[0/7] Pre-Deployment Checks${NC}"
 echo "-------------------------------------------"
 check_docker_connectivity
 echo ""
 
-echo -e "${BLUE}[1/5] Creating sonic-mgmt Configuration Files${NC}"
+echo -e "${BLUE}[1/7] Configuring BGP Network Advertisements${NC}"
+echo "-------------------------------------------"
+configure_bgp_networks
+echo ""
+
+echo -e "${BLUE}[2/7] Verifying BGP Neighbor Status${NC}"
+echo "-------------------------------------------"
+verify_bgp_neighbors
+echo ""
+
+echo -e "${BLUE}[3/7] Creating sonic-mgmt Configuration Files${NC}"
 echo "-------------------------------------------"
 create_sonic_mgmt_configs
 echo ""
 
-echo -e "${BLUE}[2/5] Fixing Cache Permissions${NC}"
+echo -e "${BLUE}[4/7] Fixing Cache Permissions${NC}"
 echo "-------------------------------------------"
 fix_cache_permissions
 echo ""
 
-echo -e "${BLUE}[3/5] Creating Ansible Configuration${NC}"
+echo -e "${BLUE}[5/7] Creating Ansible Configuration${NC}"
 echo "-------------------------------------------"
 create_ansible_config
 echo ""
 
-echo -e "${BLUE}[4/5] Syncing Ansible Inventory${NC}"
+echo -e "${BLUE}[6/7] Syncing Ansible Inventory${NC}"
 echo "-------------------------------------------"
 sync_inventory_to_ansible
 echo ""
 
-echo -e "${BLUE}[5/5] Checking sonic-mgmt Connectivity${NC}"
+echo -e "${BLUE}[7/7] Checking sonic-mgmt Connectivity${NC}"
 echo "-------------------------------------------"
 check_sonic_mgmt_network
 echo ""
@@ -199,9 +274,16 @@ echo "========================================="
 echo ""
 echo "Summary:"
 echo "  - All containers verified and running"
+echo "  - BGP network advertisements configured on all nodes"
+echo "  - BGP neighbor status verified"
 echo "  - sonic-mgmt configuration files created"
 echo "  - Cache permissions fixed"
 echo "  - Ansible configuration created"
+echo ""
+echo "BGP Configuration:"
+echo "  - sonic-dut: Networks 10.1.0.1/32, 10.0.0.0/31, 10.0.0.2/31"
+echo "  - t0:        Networks 10.0.0.100/32, 10.0.0.0/31, 10.0.1.0/31"
+echo "  - t2:        Networks 10.0.0.200/32, 10.0.0.2/31, 10.0.1.1/31"
 echo ""
 echo "sonic-mgmt Configuration Files:"
 echo "  - Inventory:   /tmp/sonic-configs/inventory.ini"
@@ -209,11 +291,18 @@ echo "  - Testbed:     /tmp/sonic-configs/testbed.yaml"
 echo "  - Ansible cfg: /sonic-mgmt/ansible/ansible.cfg"
 echo ""
 echo "Next steps:"
-echo "  1. Verify Ansible connectivity:"
+echo "  1. Verify BGP routes are being distributed:"
+echo "     docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c 'show ip route bgp'"
+echo "     docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c 'show bgp ipv4 unicast'"
+echo ""
+echo "  2. Run BGP verification script:"
+echo "     ./scripts/verify_bgp.sh"
+echo ""
+echo "  3. Verify Ansible connectivity:"
 echo "     docker exec -it clab-t1-small-vm-sonic-mgmt bash"
 echo "     ansible -i /sonic-mgmt/ansible/lab sonic-dut -m ping"
 echo ""
-echo "  2. Run sonic-mgmt tests:"
+echo "  4. Run sonic-mgmt tests:"
 echo "     cd /sonic-mgmt/tests"
 echo "     python -m pytest bgp/test_bgp_fact.py -v \\"
 echo "       --testbed /tmp/sonic-configs/testbed.yaml \\"

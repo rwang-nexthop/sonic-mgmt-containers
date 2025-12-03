@@ -1,0 +1,131 @@
+================================================================================
+BGP VERIFICATION COMMANDS - Quick Reference
+================================================================================
+
+AUTOMATED VERIFICATION:
+=======================
+
+Run the comprehensive BGP verification script:
+  ./scripts/verify_bgp.sh
+
+This script checks:
+  1. Container status
+  2. BGP neighbor establishment
+  3. BGP route propagation
+  4. Connectivity between nodes
+  5. Loopback reachability
+
+
+MANUAL VERIFICATION COMMANDS:
+=============================
+
+1. CHECK BGP NEIGHBOR STATUS
+   ========================
+
+   sonic-dut neighbors:
+   docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show ip bgp summary"
+
+   t0 neighbors:
+   docker exec clab-t1-small-vm-t0 /usr/bin/vtysh -c "show ip bgp summary"
+
+   t2 neighbors:
+   docker exec clab-t1-small-vm-t2 /usr/bin/vtysh -c "show ip bgp summary"
+
+   Expected output: All neighbors should show "Established" state
+
+
+2. CHECK BGP ROUTES IN ROUTING TABLE
+   =================================
+
+   sonic-dut BGP routes:
+   docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show ip route bgp"
+
+   t0 BGP routes:
+   docker exec clab-t1-small-vm-t0 /usr/bin/vtysh -c "show ip route bgp"
+
+   t2 BGP routes:
+   docker exec clab-t1-small-vm-t2 /usr/bin/vtysh -c "show ip route bgp"
+
+   Expected output: Routes from neighbors with proper next hops
+
+
+3. CHECK BGP TABLE (DETAILED)
+   ==========================
+
+   sonic-dut BGP table:
+   docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show bgp ipv4 unicast"
+
+   t0 BGP table:
+   docker exec clab-t1-small-vm-t0 /usr/bin/vtysh -c "show bgp ipv4 unicast"
+
+   t2 BGP table:
+   docker exec clab-t1-small-vm-t2 /usr/bin/vtysh -c "show bgp ipv4 unicast"
+
+   Expected output: All networks marked with "*>" (valid and best)
+
+
+4. CHECK RUNNING BGP CONFIGURATION
+   ===============================
+
+   sonic-dut config:
+   docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show running-config"
+
+   Look for:
+   - router bgp 65100
+   - neighbor 10.0.0.1 remote-as 65000
+   - neighbor 10.0.0.3 remote-as 65200
+   - network 10.1.0.1/32
+   - network 10.0.0.0/31
+   - network 10.0.0.2/31
+
+
+5. TEST CONNECTIVITY
+   =================
+
+   Ping from sonic-dut to t0:
+   docker exec clab-t1-small-vm-sonic-dut ping -c 3 10.0.0.1
+
+   Ping from sonic-dut to t2:
+   docker exec clab-t1-small-vm-sonic-dut ping -c 3 10.0.0.3
+
+   Ping loopback addresses:
+   docker exec clab-t1-small-vm-sonic-dut ping -c 3 10.0.0.100
+   docker exec clab-t1-small-vm-sonic-dut ping -c 3 10.0.0.200
+
+
+6. INTERACTIVE VTYSH SESSION
+   ==========================
+
+   SSH into sonic-dut:
+   ssh admin@172.30.30.5
+
+   Then run vtysh commands:
+   vtysh
+   show ip bgp summary
+   show ip route bgp
+   show bgp ipv4 unicast
+   exit
+
+
+TROUBLESHOOTING:
+================
+
+If BGP routes are not showing:
+
+1. Check if neighbors are Established:
+   docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show ip bgp summary"
+
+2. Check if networks are configured:
+   docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show running-config" | grep network
+
+3. Check BGP logs:
+   docker exec clab-t1-small-vm-sonic-dut tail -f /var/log/frr/bgpd.log
+
+4. Verify interfaces are up:
+   docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show interface"
+
+5. Re-run deployment script:
+   ./scripts/deploy_config.sh
+
+================================================================================
+
