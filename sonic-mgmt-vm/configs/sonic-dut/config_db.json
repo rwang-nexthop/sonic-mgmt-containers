@@ -73,6 +73,11 @@
   "ROUTE_MAP_SET": {
     "ALLOW_ALL": {}
   },
+  "BGP_NETWORK": {
+    "default|10.1.0.1/32": {},
+    "default|10.0.0.0/31": {},
+    "default|10.0.0.2/31": {}
+  },
   "DEVICE_NEIGHBOR": {}
 }
 
