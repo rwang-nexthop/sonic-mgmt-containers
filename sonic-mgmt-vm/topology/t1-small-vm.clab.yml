@@ -21,9 +21,9 @@ topology:
     sonic-vm:
       # Replace with your sonic-vm image
       # Examples:
-      # - container-registry.sw.internal.nexthop.ai/clab-sonic:12336
+      # - container-registry.sw.internal.nexthop.ai/clab-sonic:10368
       # - ghcr.io/sonic-net/sonic-vs:latest (if available)
-      image: container-registry.sw.internal.nexthop.ai/clab-sonic:12336
+      image: container-registry.sw.internal.nexthop.ai/clab-sonic:10368
     linux:
       image: ghcr.io/srl-labs/alpine:latest
 
