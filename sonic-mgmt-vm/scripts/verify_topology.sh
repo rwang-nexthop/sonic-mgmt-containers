@@ -39,14 +39,20 @@ echo -e "${YELLOW}sonic-mgmt IP addresses:${NC}"
 docker exec clab-t1-small-vm-sonic-mgmt ip addr show 2>/dev/null || echo "  sonic-mgmt not ready yet"
 echo ""
 
-echo -e "${YELLOW}sonic-mgmt connectivity to sonic-dut (172.30.30.4):${NC}"
-docker exec clab-t1-small-vm-sonic-mgmt ping -c 3 172.30.30.4 2>/dev/null && echo -e "${GREEN}✓ Success${NC}" || echo -e "${RED}✗ Failed${NC}"
+echo -e "${YELLOW}sonic-mgmt connectivity to sonic-dut (172.30.30.5):${NC}"
+docker exec clab-t1-small-vm-sonic-mgmt ping -c 3 172.30.30.5 2>/dev/null && echo -e "${GREEN}✓ Success${NC}" || echo -e "${RED}✗ Failed${NC}"
+echo ""
+
+# Check Ansible inventory
+echo -e "${BLUE}3. Checking Ansible inventory...${NC}"
+echo -e "${YELLOW}Ansible inventory file (/sonic-mgmt/ansible/lab):${NC}"
+docker exec clab-t1-small-vm-sonic-mgmt cat /sonic-mgmt/ansible/lab 2>/dev/null || echo "  Inventory not found"
 echo ""
 
 # Check SSH connectivity
-echo -e "${BLUE}3. Checking SSH connectivity...${NC}"
-echo -e "${YELLOW}SSH to sonic-dut (172.30.30.4):${NC}"
-if timeout 5 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.4 "echo 'SSH OK'" 2>/dev/null; then
+echo -e "${BLUE}4. Checking SSH connectivity...${NC}"
+echo -e "${YELLOW}SSH to sonic-dut (172.30.30.5):${NC}"
+if timeout 5 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.5 "echo 'SSH OK'" 2>/dev/null; then
     echo -e "${GREEN}✓ SSH connection successful${NC}"
 else
     echo -e "${YELLOW}⚠ SSH not ready yet (may need more boot time)${NC}"
@@ -54,7 +60,7 @@ fi
 echo ""
 
 # Check PTF interfaces
-echo -e "${BLUE}4. Checking PTF container interfaces...${NC}"
+echo -e "${BLUE}5. Checking PTF container interfaces...${NC}"
 echo -e "${YELLOW}PTF IP addresses:${NC}"
 docker exec clab-t1-small-vm-ptf ip addr show 2>/dev/null || echo "  PTF not ready yet"
 echo ""
@@ -63,13 +69,19 @@ echo -e "${YELLOW}PTF link status:${NC}"
 docker exec clab-t1-small-vm-ptf ip link show 2>/dev/null || echo "  PTF interfaces not ready"
 echo ""
 
+# Check Ansible connectivity
+echo -e "${BLUE}6. Checking Ansible connectivity...${NC}"
+echo -e "${YELLOW}Ansible ping to sonic-dut:${NC}"
+docker exec clab-t1-small-vm-sonic-mgmt ansible -i /sonic-mgmt/ansible/lab sonic-dut -m ping 2>/dev/null && echo -e "${GREEN}✓ Ansible connectivity successful${NC}" || echo -e "${YELLOW}⚠ Ansible not ready yet${NC}"
+echo ""
+
 # Container logs
-echo -e "${BLUE}5. Recent container logs (sonic-dut - last 20 lines)...${NC}"
+echo -e "${BLUE}7. Recent container logs (sonic-dut - last 20 lines)...${NC}"
 docker logs --tail 20 clab-t1-small-vm-sonic-dut 2>/dev/null || echo "  Logs not available"
 echo ""
 
 # Docker network inspection
-echo -e "${BLUE}6. Docker network status...${NC}"
+echo -e "${BLUE}8. Docker network status...${NC}"
 echo -e "${YELLOW}t1-mgmt network details:${NC}"
 docker network inspect t1-mgmt 2>/dev/null | grep -A 30 "Containers" || echo "  Network not ready yet"
 echo ""

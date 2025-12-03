@@ -32,6 +32,7 @@ topology:
     sonic-dut:
       kind: sonic-vm
       startup-config: ../configs/sonic-dut/config_db.json
+      mgmt-ipv4: 172.30.30.5
       ports:
         - "8081:80"    # HTTP access
         - "8444:443"   # HTTPS access
@@ -40,16 +41,19 @@ topology:
     t0:
       kind: sonic-vm
       startup-config: ../configs/t0/config_db.json
+      mgmt-ipv4: 172.30.30.6
 
     # 3. T2 Neighbor (Tier 2 - VM-based SONiC)
     t2:
       kind: sonic-vm
       startup-config: ../configs/t2/config_db.json
+      mgmt-ipv4: 172.30.30.3
 
     # 4. PTF (Packet Test Framework) Container
     ptf:
       kind: linux
       image: container-registry.sw.internal.nexthop.ai:443/docker-ptf
+      mgmt-ipv4: 172.30.30.2
       binds:
         - ../configs/ptf:/ptf:rw
       env:
@@ -61,6 +65,7 @@ topology:
     sonic-mgmt:
       kind: linux
       image: sonicdev-microsoft.azurecr.io:443/docker-sonic-mgmt:latest
+      mgmt-ipv4: 172.30.30.4
       binds:
         - /var/run/docker.sock:/var/run/docker.sock
         - ../configs:/configs:ro
