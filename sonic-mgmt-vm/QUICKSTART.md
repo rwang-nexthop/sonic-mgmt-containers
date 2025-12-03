@@ -45,8 +45,8 @@ docker logs clab-t1-small-vm-sonic-dut | tail -20
 ### Step 5: Verify Connectivity (1 min)
 
 ```bash
-# Test SSH
-ssh admin@172.30.30.4
+# Test SSH to sonic-dut (172.30.30.5)
+ssh admin@172.30.30.5
 
 # Exit SSH
 exit
@@ -56,6 +56,8 @@ docker exec -it clab-t1-small-vm-sonic-mgmt bash
 ansible -i /sonic-mgmt/ansible/lab sonic-dut -m ping
 exit
 ```
+
+**Note:** The sonic-dut is at `172.30.30.5`, not `172.30.30.4`. The sonic-mgmt container is at `172.30.30.4`.
 
 ## Running Your First Test
 
@@ -94,12 +96,12 @@ python -m pytest bgp/test_bgp_fact.py -v \
 ### Access SONiC CLI
 
 ```bash
-# Via SSH
-ssh admin@172.30.30.4
+# Via SSH (sonic-dut is at 172.30.30.5)
+ssh admin@172.30.30.5
 vtysh
 
-# Via Telnet
-telnet sonic-dut 5000
+# Via Telnet (from sonic-mgmt container)
+docker exec -it clab-t1-small-vm-sonic-mgmt telnet sonic-dut 5000
 ```
 
 ### Check Node Status

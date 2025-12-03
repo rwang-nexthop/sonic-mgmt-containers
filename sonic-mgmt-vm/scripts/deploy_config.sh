@@ -27,18 +27,24 @@ create_sonic_mgmt_configs() {
     docker exec clab-t1-small-vm-sonic-mgmt mkdir -p /tmp/sonic-configs
 
     # Create inventory file INSIDE sonic-mgmt container in /tmp/sonic-configs
+    # Note: IP addresses are assigned by containerlab in order of node definition
+    # sonic-dut: 172.30.30.5 (first sonic-vm node)
+    # t0: 172.30.30.6 (second sonic-vm node)
+    # t2: 172.30.30.3 (third sonic-vm node)
+    # ptf: 172.30.30.2 (first linux node)
+    # sonic-mgmt: 172.30.30.4 (second linux node)
     docker exec clab-t1-small-vm-sonic-mgmt bash -c 'cat > /tmp/sonic-configs/inventory.ini << '\''INVENTORY_EOF'\''
 [sonic]
-sonic-dut ansible_host=172.30.30.4 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
+sonic-dut ansible_host=172.30.30.5 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
 
 [t0]
-t0 ansible_host=172.30.30.3 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
+t0 ansible_host=172.30.30.6 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
 
 [t2]
-t2 ansible_host=172.30.30.2 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
+t2 ansible_host=172.30.30.3 ansible_user=admin ansible_password=admin ansible_connection=ssh ansible_become=yes ansible_become_method=sudo ansible_become_user=root ansible_become_pass=admin
 
 [ptf]
-ptf ansible_host=172.30.30.5 ansible_user=root ansible_password=root ansible_connection=ssh
+ptf ansible_host=172.30.30.2 ansible_user=root ansible_password=root ansible_connection=ssh
 INVENTORY_EOF'
 
     # Create testbed.yaml file INSIDE sonic-mgmt container
@@ -49,7 +55,7 @@ INVENTORY_EOF'
   topo_name: t1-small-vm
   ptf_image_name: docker-ptf
   ptf: ptf
-  ptf_ip: 172.30.30.5/24
+  ptf_ip: 172.30.30.2/24
   server: localhost
   vm_base:
   dut:
@@ -119,11 +125,11 @@ ANSIBLE_EOF
 check_sonic_mgmt_network() {
     echo -e "${BLUE}Checking sonic-mgmt network connectivity...${NC}"
 
-    # Check connectivity to sonic-dut
-    if docker exec clab-t1-small-vm-sonic-mgmt ping -c 1 -W 2 172.30.30.4 > /dev/null 2>&1; then
-        echo -e "  ${GREEN}✓${NC} sonic-mgmt → sonic-dut (172.30.30.4)"
+    # Check connectivity to sonic-dut (172.30.30.5)
+    if docker exec clab-t1-small-vm-sonic-mgmt ping -c 1 -W 2 172.30.30.5 > /dev/null 2>&1; then
+        echo -e "  ${GREEN}✓${NC} sonic-mgmt → sonic-dut (172.30.30.5)"
     else
-        echo -e "  ${RED}✗${NC} sonic-mgmt → sonic-dut (172.30.30.4) - No response"
+        echo -e "  ${RED}✗${NC} sonic-mgmt → sonic-dut (172.30.30.5) - No response"
     fi
 }
 
