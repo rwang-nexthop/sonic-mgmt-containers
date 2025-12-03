@@ -121,6 +121,32 @@ ANSIBLE_EOF
     echo -e "${GREEN}✓ ansible.cfg created${NC}"
 }
 
+# Function to sync inventory into /sonic-mgmt/ansible/lab with correct IPs
+sync_inventory_to_ansible() {
+    echo -e "${BLUE}Syncing Ansible inventory inside sonic-mgmt...${NC}"
+
+    docker exec clab-t1-small-vm-sonic-mgmt bash -c '
+set -e
+sudo mkdir -p /sonic-mgmt/ansible
+
+# Copy generated inventory to ansible directory
+sudo cp /tmp/sonic-configs/inventory.ini /sonic-mgmt/ansible/lab
+
+# Ensure sonic-dut has correct IP (172.30.30.5)
+sudo sed -i "s/sonic-dut[[:space:]]\+ansible_host=172\.30\.30\.4/sonic-dut ansible_host=172.30.30.5/" /sonic-mgmt/ansible/lab || true
+
+# Verify sonic-dut has correct IP
+if grep -q "sonic-dut.*ansible_host=172\.30\.30\.5" /sonic-mgmt/ansible/lab; then
+  echo "✓ sonic-dut correctly configured at 172.30.30.5"
+else
+  echo "✗ Warning: sonic-dut IP may not be correct"
+fi
+'
+
+    echo -e "${GREEN}✓ Inventory synced to /sonic-mgmt/ansible/lab${NC}"
+}
+
+
 # Function to check sonic-mgmt network connectivity
 check_sonic_mgmt_network() {
     echo -e "${BLUE}Checking sonic-mgmt network connectivity...${NC}"
@@ -133,27 +159,32 @@ check_sonic_mgmt_network() {
     fi
 }
 
-echo -e "${BLUE}[0/4] Pre-Deployment Checks${NC}"
+echo -e "${BLUE}[0/5] Pre-Deployment Checks${NC}"
 echo "-------------------------------------------"
 check_docker_connectivity
 echo ""
 
-echo -e "${BLUE}[1/4] Creating sonic-mgmt Configuration Files${NC}"
+echo -e "${BLUE}[1/5] Creating sonic-mgmt Configuration Files${NC}"
 echo "-------------------------------------------"
 create_sonic_mgmt_configs
 echo ""
 
-echo -e "${BLUE}[2/4] Fixing Cache Permissions${NC}"
+echo -e "${BLUE}[2/5] Fixing Cache Permissions${NC}"
 echo "-------------------------------------------"
 fix_cache_permissions
 echo ""
 
-echo -e "${BLUE}[3/4] Creating Ansible Configuration${NC}"
+echo -e "${BLUE}[3/5] Creating Ansible Configuration${NC}"
 echo "-------------------------------------------"
 create_ansible_config
 echo ""
 
-echo -e "${BLUE}[4/4] Checking sonic-mgmt Connectivity${NC}"
+echo -e "${BLUE}[4/5] Syncing Ansible Inventory${NC}"
+echo "-------------------------------------------"
+sync_inventory_to_ansible
+echo ""
+
+echo -e "${BLUE}[5/5] Checking sonic-mgmt Connectivity${NC}"
 echo "-------------------------------------------"
 check_sonic_mgmt_network
 echo ""
@@ -178,17 +209,11 @@ echo "  - Testbed:     /tmp/sonic-configs/testbed.yaml"
 echo "  - Ansible cfg: /sonic-mgmt/ansible/ansible.cfg"
 echo ""
 echo "Next steps:"
-echo "  1. Enter sonic-mgmt container:"
+echo "  1. Verify Ansible connectivity:"
 echo "     docker exec -it clab-t1-small-vm-sonic-mgmt bash"
+echo "     ansible -i /sonic-mgmt/ansible/lab sonic-dut -m ping"
 echo ""
-echo "  2. Copy inventory to ansible:"
-echo "     sudo cp /tmp/sonic-configs/inventory.ini /sonic-mgmt/ansible/lab"
-echo ""
-echo "  3. Verify Ansible connectivity:"
-echo "     cd /sonic-mgmt/ansible"
-echo "     ansible -i lab sonic-dut -m ping"
-echo ""
-echo "  4. Run sonic-mgmt tests:"
+echo "  2. Run sonic-mgmt tests:"
 echo "     cd /sonic-mgmt/tests"
 echo "     python -m pytest bgp/test_bgp_fact.py -v \\"
 echo "       --testbed /tmp/sonic-configs/testbed.yaml \\"
