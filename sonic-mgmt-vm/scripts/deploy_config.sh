@@ -112,6 +112,7 @@ create_ansible_config() {
     docker exec clab-t1-small-vm-sonic-mgmt bash -c 'sudo bash -c '\''cat > /sonic-mgmt/ansible/ansible.cfg << ANSIBLE_EOF
 [defaults]
 library = /sonic-mgmt/tests/library:/sonic-mgmt/ansible/library
+module_utils = module_utils
 host_key_checking = False
 deprecation_warnings = False
 inventory = /sonic-mgmt/ansible/lab
@@ -147,13 +148,14 @@ fi
 }
 
 
-# Function to configure BGP network advertisements
+# Function to configure BGP network advertisements via SSH (for sonic-vm containers)
 configure_bgp_networks() {
     echo -e "${BLUE}Configuring BGP network advertisements...${NC}"
 
-    # Configure sonic-dut BGP networks
+    # Configure sonic-dut BGP networks via SSH
     echo -e "  ${YELLOW}Configuring sonic-dut BGP networks...${NC}"
-    docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "configure terminal" \
+    sshpass -p admin ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.5 \
+        'vtysh -c "configure terminal" \
         -c "router bgp 65100" \
         -c "address-family ipv4 unicast" \
         -c "network 10.1.0.1/32" \
@@ -161,12 +163,13 @@ configure_bgp_networks() {
         -c "network 10.0.0.2/31" \
         -c "exit-address-family" \
         -c "exit" \
-        -c "exit" 2>/dev/null || true
+        -c "exit"' 2>/dev/null || true
     echo -e "    ${GREEN}✓${NC} sonic-dut BGP networks configured"
 
-    # Configure t0 BGP networks
+    # Configure t0 BGP networks via SSH
     echo -e "  ${YELLOW}Configuring t0 BGP networks...${NC}"
-    docker exec clab-t1-small-vm-t0 /usr/bin/vtysh -c "configure terminal" \
+    sshpass -p admin ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.6 \
+        'vtysh -c "configure terminal" \
         -c "router bgp 65000" \
         -c "address-family ipv4 unicast" \
         -c "network 10.0.0.100/32" \
@@ -174,12 +177,13 @@ configure_bgp_networks() {
         -c "network 10.0.1.0/31" \
         -c "exit-address-family" \
         -c "exit" \
-        -c "exit" 2>/dev/null || true
+        -c "exit"' 2>/dev/null || true
     echo -e "    ${GREEN}✓${NC} t0 BGP networks configured"
 
-    # Configure t2 BGP networks
+    # Configure t2 BGP networks via SSH
     echo -e "  ${YELLOW}Configuring t2 BGP networks...${NC}"
-    docker exec clab-t1-small-vm-t2 /usr/bin/vtysh -c "configure terminal" \
+    sshpass -p admin ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.3 \
+        'vtysh -c "configure terminal" \
         -c "router bgp 65200" \
         -c "address-family ipv4 unicast" \
         -c "network 10.0.0.200/32" \
@@ -187,29 +191,45 @@ configure_bgp_networks() {
         -c "network 10.0.1.1/31" \
         -c "exit-address-family" \
         -c "exit" \
-        -c "exit" 2>/dev/null || true
+        -c "exit"' 2>/dev/null || true
     echo -e "    ${GREEN}✓${NC} t2 BGP networks configured"
 
     echo -e "${GREEN}✓ BGP network advertisements configured${NC}"
 }
 
-# Function to verify BGP neighbor status
+# Function to verify BGP neighbor status via SSH (for sonic-vm containers)
 verify_bgp_neighbors() {
     echo -e "${BLUE}Verifying BGP neighbor status...${NC}"
 
     # Check sonic-dut neighbors
     echo -e "  ${YELLOW}sonic-dut BGP neighbors:${NC}"
-    docker exec clab-t1-small-vm-sonic-dut /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
+    sshpass -p admin ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.5 \
+        'vtysh -c "show ip bgp summary"' 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
 
     # Check t0 neighbors
     echo -e "  ${YELLOW}t0 BGP neighbors:${NC}"
-    docker exec clab-t1-small-vm-t0 /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
+    sshpass -p admin ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.6 \
+        'vtysh -c "show ip bgp summary"' 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
 
     # Check t2 neighbors
     echo -e "  ${YELLOW}t2 BGP neighbors:${NC}"
-    docker exec clab-t1-small-vm-t2 /usr/bin/vtysh -c "show ip bgp summary" 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
+    sshpass -p admin ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@172.30.30.3 \
+        'vtysh -c "show ip bgp summary"' 2>/dev/null | grep -E "Neighbor|Established|Active" || echo "    BGP not ready yet"
 
     echo -e "${GREEN}✓ BGP neighbor verification complete${NC}"
+}
+
+# Function to fix PTF group_vars connection plugin
+fix_ptf_connection_plugin() {
+    echo -e "${BLUE}Fixing PTF Ansible connection plugin...${NC}"
+
+    docker exec clab-t1-small-vm-sonic-mgmt bash -c 'sudo bash -c '\''cat > /sonic-mgmt/ansible/group_vars/ptf/vars.yml << PTF_EOF
+ansible_python_interpreter: "/usr/bin/python"
+ansible_connection: ssh
+PTF_EOF
+'\'''
+
+    echo -e "${GREEN}✓ PTF connection plugin fixed (changed from multi_passwd_ssh to ssh)${NC}"
 }
 
 # Function to check sonic-mgmt network connectivity
@@ -249,17 +269,22 @@ echo "-------------------------------------------"
 fix_cache_permissions
 echo ""
 
-echo -e "${BLUE}[5/7] Creating Ansible Configuration${NC}"
+echo -e "${BLUE}[5/8] Creating Ansible Configuration${NC}"
 echo "-------------------------------------------"
 create_ansible_config
 echo ""
 
-echo -e "${BLUE}[6/7] Syncing Ansible Inventory${NC}"
+echo -e "${BLUE}[6/8] Fixing PTF Connection Plugin${NC}"
+echo "-------------------------------------------"
+fix_ptf_connection_plugin
+echo ""
+
+echo -e "${BLUE}[7/8] Syncing Ansible Inventory${NC}"
 echo "-------------------------------------------"
 sync_inventory_to_ansible
 echo ""
 
-echo -e "${BLUE}[7/7] Checking sonic-mgmt Connectivity${NC}"
+echo -e "${BLUE}[8/8] Checking sonic-mgmt Connectivity${NC}"
 echo "-------------------------------------------"
 check_sonic_mgmt_network
 echo ""
@@ -274,11 +299,12 @@ echo "========================================="
 echo ""
 echo "Summary:"
 echo "  - All containers verified and running"
-echo "  - BGP network advertisements configured on all nodes"
+echo "  - BGP network advertisements configured on all nodes (via SSH)"
 echo "  - BGP neighbor status verified"
 echo "  - sonic-mgmt configuration files created"
 echo "  - Cache permissions fixed"
-echo "  - Ansible configuration created"
+echo "  - Ansible configuration created with module_utils"
+echo "  - PTF connection plugin fixed (multi_passwd_ssh → ssh)"
 echo ""
 echo "BGP Configuration:"
 echo "  - sonic-dut: Networks 10.1.0.1/32, 10.0.0.0/31, 10.0.0.2/31"
