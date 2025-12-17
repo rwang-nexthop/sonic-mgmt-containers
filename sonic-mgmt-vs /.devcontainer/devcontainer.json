@@ -1,0 +1,70 @@
+{
+  "name": "SONiC T1-Small Topology - Docker-outside-of-Docker",
+  "image": "ghcr.io/srl-labs/containerlab/devcontainer-dood-slim:0.69.0",
+  "runArgs": [
+    "--network=host",
+    "--pid=host",
+    "--privileged"
+  ],
+  "mounts": [
+    "type=bind,src=/run/docker/netns,dst=/run/docker/netns",
+    "type=bind,src=/var/lib/docker,dst=/var/lib/docker",
+    "type=bind,src=/lib/modules,dst=/lib/modules",
+    "type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock",
+    "type=bind,src=/etc/hosts,dst=/etc/hosts"
+  ],
+  "workspaceFolder": "${localWorkspaceFolder}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          },
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        },
+        "terminal.integrated.fontFamily": "FiraCode Nerd Font, Menlo, Monaco, Cascadia Code, Consolas, Courier New, monospace",
+        "files.watcherExclude": {
+          "**/clab-*/**": true,
+          "**/.git/objects/**": true,
+          "**/.git/subtree-cache/**": true,
+          "**/node_modules/**": true
+        }
+      },
+      "extensions": [
+        // Containerlab
+        "srl-labs.vscode-containerlab",
+        // Docker
+        "ms-azuretools.vscode-docker",
+        // Git
+        "mhutchie.git-graph",
+        // Python (for PTF and automation scripts)
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        // YAML and JSON
+        "redhat.vscode-yaml",
+        // Markdown
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        // Shell scripts
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format"
+      ]
+    }
+  },
+  "postCreateCommand": "bash -c 'echo \"SONiC T1-Small Topology DevContainer Ready!\" && clab version'",
+  "postStartCommand": "bash -c 'echo \"Welcome to SONiC T1-Small Topology!\" && echo \"Quick Start: cd topology && sudo clab deploy -t t1-small.clab.yml\"'",
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "dockerDashComposeVersion": "none",
+      "installDockerComposeSwitch": "false"
+    }
+  }
+}
+

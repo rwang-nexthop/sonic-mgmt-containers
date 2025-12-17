@@ -1,0 +1,19 @@
+all:
+  vars:
+    # The generated inventory is assumed to be used from the clab host.
+    # Hence no http proxy should be used. Therefore we make sure the http
+    # module does not attempt using any global http proxy.
+    ansible_httpapi_use_proxy: false
+  children:
+    sonic-vs:
+      hosts:
+        clab-sonic-vs-t0-dut:
+          ansible_host: 172.20.20.2
+        clab-sonic-vs-t0-leaf1:
+          ansible_host: 172.20.20.11
+        clab-sonic-vs-t0-leaf2:
+          ansible_host: 172.20.20.12
+        clab-sonic-vs-t0-leaf3:
+          ansible_host: 172.20.20.13
+        clab-sonic-vs-t0-leaf4:
+          ansible_host: 172.20.20.14
