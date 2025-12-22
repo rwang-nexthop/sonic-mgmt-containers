@@ -1,0 +1,29 @@
+all:
+  children:
+    sonic_devices:
+      hosts:
+        dut:
+          ansible_host: 172.20.20.2
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_network_os: sonic
+        leaf1:
+          ansible_host: 172.20.20.11
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_network_os: sonic
+        leaf2:
+          ansible_host: 172.20.20.12
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_network_os: sonic
+        leaf3:
+          ansible_host: 172.20.20.13
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_network_os: sonic
+        leaf4:
+          ansible_host: 172.20.20.14
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_network_os: sonic
