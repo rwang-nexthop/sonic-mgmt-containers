@@ -1,7 +1,0 @@
-- hosts: all
-  gather_facts: no
-  serial: "100%"
-  roles:
-  - testbed/prepare
-  - testbed/nut
-  - testbed/finalize

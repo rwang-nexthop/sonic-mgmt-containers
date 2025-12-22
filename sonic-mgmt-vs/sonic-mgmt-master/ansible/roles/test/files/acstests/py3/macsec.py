@@ -1,1 +1,0 @@
-../../ptftests/macsec.py
