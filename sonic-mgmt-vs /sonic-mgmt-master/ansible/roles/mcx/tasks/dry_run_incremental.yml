@@ -1,3 +1,0 @@
-- name: Print incremental json
-  debug:
-    msg: "{{ lookup('template', 'incremental_mcx_config.j2') }}"
