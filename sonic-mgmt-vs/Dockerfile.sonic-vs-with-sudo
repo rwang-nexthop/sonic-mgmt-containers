@@ -1,0 +1,17 @@
+FROM docker-sonic-vs:latest
+
+# Install sudo package (skip apt-get update due to repo issues)
+RUN apt-get install -y sudo 2>/dev/null || true
+
+# Configure admin user for passwordless sudo
+RUN echo 'admin ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/admin && \
+    chmod 0440 /etc/sudoers.d/admin
+
+# Enable password authentication in SSH
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# Set root password for SSH access
+RUN echo 'root:sonic' | chpasswd
+
+CMD ["/usr/local/bin/supervisord"]
+
