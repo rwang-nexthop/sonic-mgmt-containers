@@ -1,3 +1,0 @@
-# conf-name,group-name,topo,ptf_image_name,ptf,ptf_ip,ptf_ipv6,server,vm_base,dut,inv_name,auto_recover,is_smartswitch,comment
-clab-sonic-vs-t0,clab-sonic-vs-t0,t0,docker-ptf,ptf-clab,172.20.20.100/24,,localhost,,dut,../ansible/clab_inventory,False,False,SONiC-VS Containerlab T0 Topology
-
