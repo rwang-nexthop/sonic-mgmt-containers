@@ -1,0 +1,181 @@
+{
+  "name": "sonic-vs-t0",
+  "type": "clab",
+  "clab": {
+    "config": {
+      "prefix": "clab",
+      "mgmt": {
+        "network": "mgmt-net",
+        "bridge": "br-d9fce9e54c99",
+        "ipv4-subnet": "172.20.20.0/24",
+        "ipv4-gw": "172.20.20.1",
+        "ipv6-gw": "fe80::4c52:20ff:feb7:5c3a",
+        "external-access": true
+      }
+    }
+  },
+  "ssh-pub-keys": ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBJx4ss8nxPhJuDksMikd1ud8UGeQc4bw/OThKmitgatgKgA8IqfPsOI+qRBkMf3ADtZ6JzT8wAsdL14jNh9kEf0="],
+  "nodes": {
+    "dut": {
+      "index": "0",
+      "shortname": "dut",
+      "longname": "clab-sonic-vs-t0-dut",
+      "fqdn": "dut.sonic-vs-t0.io",
+      "group": "",
+      "labdir": "/Users/rwang/Python/Projects/sonic-mgmt-vs/clab-sonic-vs-t0/dut",
+      "kind": "sonic-vs",
+      "image": "docker-sonic-vs:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.2",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-d9fce9e54c99",
+        "clab-node-group": "",
+        "clab-node-kind": "sonic-vs",
+        "clab-node-lab-dir": "/Users/rwang/Python/Projects/sonic-mgmt-vs/clab-sonic-vs-t0/dut",
+        "clab-node-longname": "clab-sonic-vs-t0-dut",
+        "clab-node-name": "dut",
+        "clab-node-type": "",
+        "clab-owner": "vscode",
+        "clab-topo-file": "/Users/rwang/Python/Projects/sonic-mgmt-vs/sonic-vs-t0.clab.yml",
+        "containerlab": "sonic-vs-t0"
+      },
+      "port-bindings": [
+        {
+          "host-ip": "0.0.0.0",
+          "host-port": 8161,
+          "port": 161,
+          "protocol": "tcp"
+        },
+        {
+          "host-ip": "::",
+          "host-port": 8161,
+          "port": 161,
+          "protocol": "tcp"
+        },
+        {
+          "host-ip": "0.0.0.0",
+          "host-port": 8022,
+          "port": 22,
+          "protocol": "tcp"
+        },
+        {
+          "host-ip": "::",
+          "host-port": 8022,
+          "port": 22,
+          "protocol": "tcp"
+        }
+      ]
+    },
+    "leaf1": {
+      "index": "1",
+      "shortname": "leaf1",
+      "longname": "clab-sonic-vs-t0-leaf1",
+      "fqdn": "leaf1.sonic-vs-t0.io",
+      "group": "",
+      "labdir": "/Users/rwang/Python/Projects/sonic-mgmt-vs/clab-sonic-vs-t0/leaf1",
+      "kind": "sonic-vs",
+      "image": "docker-sonic-vs:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.11",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-d9fce9e54c99",
+        "clab-node-group": "",
+        "clab-node-kind": "sonic-vs",
+        "clab-node-lab-dir": "/Users/rwang/Python/Projects/sonic-mgmt-vs/clab-sonic-vs-t0/leaf1",
+        "clab-node-longname": "clab-sonic-vs-t0-leaf1",
+        "clab-node-name": "leaf1",
+        "clab-node-type": "",
+        "clab-owner": "vscode",
+        "clab-topo-file": "/Users/rwang/Python/Projects/sonic-mgmt-vs/sonic-vs-t0.clab.yml",
+        "containerlab": "sonic-vs-t0"
+      },
+      "port-bindings": [
+      ]
+    },
+    "leaf2": {
+      "index": "2",
+      "shortname": "leaf2",
+      "longname": "clab-sonic-vs-t0-leaf2",
+      "fqdn": "leaf2.sonic-vs-t0.io",
+      "group": "",
+      "labdir": "/Users/rwang/Python/Projects/sonic-mgmt-vs/clab-sonic-vs-t0/leaf2",
+      "kind": "sonic-vs",
+      "image": "docker-sonic-vs:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.12",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "",
+      "mgmt-ipv6-prefix-length": 0,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-d9fce9e54c99",
+        "clab-node-group": "",
+        "clab-node-kind": "sonic-vs",
+        "clab-node-lab-dir": "/Users/rwang/Python/Projects/sonic-mgmt-vs/clab-sonic-vs-t0/leaf2",
+        "clab-node-longname": "clab-sonic-vs-t0-leaf2",
+        "clab-node-name": "leaf2",
+        "clab-node-type": "",
+        "clab-owner": "vscode",
+        "clab-topo-file": "/Users/rwang/Python/Projects/sonic-mgmt-vs/sonic-vs-t0.clab.yml",
+        "containerlab": "sonic-vs-t0"
+      },
+      "port-bindings": [
+      ]
+    }
+  },
+  "links": [
+    {
+      "a": {
+        "node": "dut",
+        "interface": "Ethernet0",
+        "mac": "aa:c1:ab:22:37:2e",
+        "peer": "z"
+      },
+      "z": {
+        "node": "leaf1",
+        "interface": "Ethernet0",
+        "mac": "aa:c1:ab:20:b0:a8",
+        "peer": "a"
+      }
+    },
+    {
+      "a": {
+        "node": "dut",
+        "interface": "Ethernet4",
+        "mac": "aa:c1:ab:35:55:70",
+        "peer": "z"
+      },
+      "z": {
+        "node": "leaf2",
+        "interface": "Ethernet0",
+        "mac": "aa:c1:ab:2f:88:57",
+        "peer": "a"
+      }
+    },
+    {
+      "a": {
+        "node": "leaf1",
+        "interface": "Ethernet4",
+        "mac": "aa:c1:ab:19:de:0c",
+        "peer": "z"
+      },
+      "z": {
+        "node": "leaf2",
+        "interface": "Ethernet4",
+        "mac": "aa:c1:ab:dd:f5:b8",
+        "peer": "a"
+      }
+    }
+  ]
+}

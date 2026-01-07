@@ -1,0 +1,42 @@
+all:
+  children:
+    sonic:
+      vars:
+        ansible_connection: multi_passwd_ssh
+        sonicadmin_user: admin
+        sonicadmin_password: YourPassword
+      hosts:
+        dut:
+          ansible_host: 172.20.20.2
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_altpassword: YourPassword
+          ansible_network_os: sonic
+          ansible_become: false
+        leaf1:
+          ansible_host: 172.20.20.11
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_altpassword: YourPassword
+          ansible_network_os: sonic
+          ansible_become: false
+        leaf2:
+          ansible_host: 172.20.20.12
+          ansible_user: admin
+          ansible_password: YourPassword
+          ansible_altpassword: YourPassword
+          ansible_network_os: sonic
+          ansible_become: false
+    ptf:
+      hosts:
+        ptf-clab:
+          ansible_host: 172.20.20.100
+          ansible_user: root
+          ansible_password: root
+          ansible_become: false
+    localhost:
+      hosts:
+        localhost:
+          ansible_host: 127.0.0.1
+          ansible_connection: local
+          ansible_become: false

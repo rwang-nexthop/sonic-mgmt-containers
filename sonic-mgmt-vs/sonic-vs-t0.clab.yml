@@ -1,0 +1,36 @@
+name: sonic-vs-t0
+mgmt:
+    network: mgmt-net
+    ipv4-subnet: 172.20.20.0/24
+
+topology:
+  kinds:
+    sonic-vm:
+      image: container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+
+  nodes:
+    # DUT - Device Under Test (SONiC-VM)
+    dut:
+      kind: sonic-vm
+      mgmt-ipv4: 172.20.20.2
+      startup-config: ./configs/dut/config_db.json
+
+    # Leaf Neighbors (SONiC-VM)
+    leaf1:
+      kind: sonic-vm
+      mgmt-ipv4: 172.20.20.11
+      startup-config: ./configs/leaf1/config_db.json
+
+    leaf2:
+      kind: sonic-vm
+      mgmt-ipv4: 172.20.20.12
+      startup-config: ./configs/leaf2/config_db.json
+
+  links:
+    # DUT to Leaf connections (T0 topology)
+    - endpoints: ["dut:eth1", "leaf1:eth1"]
+    - endpoints: ["dut:eth2", "leaf2:eth1"]
+
+    # Inter-leaf connection for redundancy
+    - endpoints: ["leaf1:eth2", "leaf2:eth2"]
+

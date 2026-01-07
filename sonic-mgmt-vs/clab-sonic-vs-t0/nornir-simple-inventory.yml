@@ -1,0 +1,16 @@
+---
+dut:
+    username: 
+    password: 
+    platform: sonic-vs
+    hostname: 172.20.20.2
+leaf1:
+    username: 
+    password: 
+    platform: sonic-vs
+    hostname: 172.20.20.11
+leaf2:
+    username: 
+    password: 
+    platform: sonic-vs
+    hostname: 172.20.20.12

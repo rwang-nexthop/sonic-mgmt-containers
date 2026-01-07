@@ -1,0 +1,16 @@
+---
+
+- conf-name: clab-sonic-vs-t0
+  group-name: clab-sonic-vs-t0
+  topo: t0
+  ptf_image_name: docker-ptf
+  ptf: ptf-clab
+  ptf_ip: 172.20.20.100/24
+  ptf_ipv6:
+  server: localhost
+  vm_base:
+  dut:
+    - dut
+  inv_name: /var/src/ansible/clab_inventory
+  auto_recover: 'False'
+  comment: SONiC-VS Containerlab T0 Topology with 2 leaf nodes
