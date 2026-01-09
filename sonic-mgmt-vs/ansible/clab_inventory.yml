@@ -4,27 +4,27 @@ all:
       vars:
         ansible_connection: multi_passwd_ssh
         sonicadmin_user: admin
-        sonicadmin_password: YourPassword
+        sonicadmin_password: admin
       hosts:
         dut:
           ansible_host: 172.20.20.2
           ansible_user: admin
-          ansible_password: YourPassword
-          ansible_altpassword: YourPassword
+          ansible_password: admin
+          ansible_altpassword: admin
           ansible_network_os: sonic
           ansible_become: false
         leaf1:
           ansible_host: 172.20.20.11
           ansible_user: admin
-          ansible_password: YourPassword
-          ansible_altpassword: YourPassword
+          ansible_password: admin
+          ansible_altpassword: admin
           ansible_network_os: sonic
           ansible_become: false
         leaf2:
           ansible_host: 172.20.20.12
           ansible_user: admin
-          ansible_password: YourPassword
-          ansible_altpassword: YourPassword
+          ansible_password: admin
+          ansible_altpassword: admin
           ansible_network_os: sonic
           ansible_become: false
     ptf:

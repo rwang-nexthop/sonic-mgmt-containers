@@ -1,0 +1,553 @@
+rwang@sonic-mgmt-test:/var/src/sonic-mgmt-master/tests$ python -m pytest bgp/test_bgp_fact.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+Test session starts (platform: linux, Python 3.12.3, pytest 9.0.2, pytest-sugar 1.1.1)
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.3', 'Platform': 'Linux-5.15.0-161-generic-x86_64-with-glibc2.39', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'plus': '0.8.1', 'cov': '7.0.0', 'allure-pytest': '2.15.3', 'ansible': '25.12.0', 'repeat': '0.9.4', 'sugar': '1.1.1', 'stress': '1.0.1', 'html': '4.1.1', 'xdist': '3.8.0', 'metadata': '3.1.1'}}
+ansible: 2.18.12
+rootdir: /var/src/sonic-mgmt-master/tests
+configfile: pytest.ini
+plugins: plus-0.8.1, cov-7.0.0, allure-pytest-2.15.3, ansible-25.12.0, repeat-0.9.4, sugar-1.1.1, stress-1.0.1, html-4.1.1, xdist-3.8.0, metadata-3.1.1
+collected 1 item
+
+
+―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― ERROR at setup of test_bgp_facts[dut-None] ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
+
+enhance_inventory = None, ansible_adhoc = <function ansible_adhoc.<locals>.init_host_mgr at 0x7f13fca8e200>
+tbinfo = {'auto_recover': 'False', 'comment': 'SONiC-VS Containerlab T0 Topology with 2 leaf nodes', 'conf-name': 'clab-sonic-vs-t0', 'duts': ['dut'], ...}
+duthost = <MultiAsicSonicHost dut>, request = <SubRequest 'ptfhosts' for <Function test_bgp_facts[dut-None]>>
+
+    @pytest.fixture(scope="session")
+    def ptfhosts(enhance_inventory, ansible_adhoc, tbinfo, duthost, request):
+        _hosts = []
+        if 'ptp' in tbinfo['topo']['name']:
+            return None
+        if tbinfo['topo']['name'].startswith("nut-"):
+            return None
+        if "ptf_image_name" in tbinfo and "docker-keysight-api-server" in tbinfo["ptf_image_name"]:
+            return None
+        if "ptf" in tbinfo:
+>           _hosts.append(PTFHost(ansible_adhoc, tbinfo["ptf"], duthost, tbinfo,
+
+conftest.py:791:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+common/devices/ptf.py:27: in __init__
+    AnsibleHostBase.__init__(self, ansible_adhoc, hostname)
+common/devices/base.py:47: in __init__
+    self.host = ansible_adhoc(become=True, host_pattern=hostname, *args, **kwargs)[hostname]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <pytest_ansible.host_manager.v213.HostManagerV213 object at 0x7f13fc6b6b10>, item = 'ptf-clab'
+
+    def __getitem__(self, item):  # type: ignore[no-untyped-def]  # noqa: ANN001, ANN204
+        """Return a ModuleDispatcher instance described the provided `item`.
+
+        Raises:
+            KeyError: If the item does not exist.
+        """
+        # Handle slicing
+        if isinstance(item, slice):
+            new_item = "all["
+            if item.start is not None:
+                new_item += str(item.start)
+            new_item += "-"
+            if item.stop is not None:
+                new_item += str(item.stop)
+            item = new_item + "]"
+
+        if item in self.__dict__:
+            return self.__dict__[item]
+        if not self.has_matching_inventory(item):  # type: ignore[no-untyped-call]
+>           raise KeyError(item)
+E           KeyError: 'ptf-clab'
+
+/opt/venv/lib/python3.12/site-packages/pytest_ansible/host_manager/base.py:106: KeyError
+                                                                                                                                                                     100% ██████████
+================================================================================= warnings summary =================================================================================
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ptfadapter
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ansible_fixtures
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.loganalyzer
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.sanity_check
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.test_completeness
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.dualtor
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.fixtures.duthost_utils
+    self.import_plugin(import_spec)
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../../../opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93
+  /opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+ptf_runner.py:3
+  /var/src/sonic-mgmt-master/tests/ptf_runner.py:3: DeprecationWarning: 'pipes' is deprecated and slated for removal in Python 3.13
+    import pipes
+
+bgp/test_bgp_fact.py::test_bgp_facts[dut-None]
+  /opt/venv/lib/python3.12/site-packages/pytest_ansible/host_manager/v213.py:13: DeprecationWarning: Host management is deprecated and will be removed in a future release
+    class HostManagerV213(BaseHostManager):
+
+bgp/test_bgp_fact.py::test_bgp_facts[dut-None]
+bgp/test_bgp_fact.py::test_bgp_facts[dut-None]
+  /opt/venv/lib/python3.12/site-packages/ansible/plugins/loader.py:1485: UserWarning: AnsibleCollectionFinder has already been configured
+    warnings.warn('AnsibleCollectionFinder has already been configured')
+
+bgp/test_bgp_fact.py::test_bgp_facts[dut-None]
+bgp/test_bgp_fact.py::test_bgp_facts[dut-None]
+bgp/test_bgp_fact.py::test_bgp_facts[dut-None]
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=172) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================================= short test summary info ==============================================================================
+FAILED bgp/test_bgp_fact.py::test_bgp_facts[dut-None] - KeyError: 'ptf-clab'
+
+Results (4.70s):
+       1 error
+rwang@sonic-mgmt-test:/var/src/sonic-mgmt-master/tests$ python -m pytest bgp/test_ping_bgp_neighbor.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+Test session starts (platform: linux, Python 3.12.3, pytest 9.0.2, pytest-sugar 1.1.1)
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.3', 'Platform': 'Linux-5.15.0-161-generic-x86_64-with-glibc2.39', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'plus': '0.8.1', 'cov': '7.0.0', 'allure-pytest': '2.15.3', 'ansible': '25.12.0', 'repeat': '0.9.4', 'sugar': '1.1.1', 'stress': '1.0.1', 'html': '4.1.1', 'xdist': '3.8.0', 'metadata': '3.1.1'}}
+ansible: 2.18.12
+rootdir: /var/src/sonic-mgmt-master/tests
+configfile: pytest.ini
+plugins: plus-0.8.1, cov-7.0.0, allure-pytest-2.15.3, ansible-25.12.0, repeat-0.9.4, sugar-1.1.1, stress-1.0.1, html-4.1.1, xdist-3.8.0, metadata-3.1.1
+collected 1 item
+
+
+―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― ERROR at setup of test_ping_bgp_neighbor[dut-None] ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
+
+enhance_inventory = None, ansible_adhoc = <function ansible_adhoc.<locals>.init_host_mgr at 0x7f30dea15940>
+tbinfo = {'auto_recover': 'False', 'comment': 'SONiC-VS Containerlab T0 Topology with 2 leaf nodes', 'conf-name': 'clab-sonic-vs-t0', 'duts': ['dut'], ...}
+duthost = <MultiAsicSonicHost dut>, request = <SubRequest 'ptfhosts' for <Function test_ping_bgp_neighbor[dut-None]>>
+
+    @pytest.fixture(scope="session")
+    def ptfhosts(enhance_inventory, ansible_adhoc, tbinfo, duthost, request):
+        _hosts = []
+        if 'ptp' in tbinfo['topo']['name']:
+            return None
+        if tbinfo['topo']['name'].startswith("nut-"):
+            return None
+        if "ptf_image_name" in tbinfo and "docker-keysight-api-server" in tbinfo["ptf_image_name"]:
+            return None
+        if "ptf" in tbinfo:
+>           _hosts.append(PTFHost(ansible_adhoc, tbinfo["ptf"], duthost, tbinfo,
+
+conftest.py:791:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+common/devices/ptf.py:27: in __init__
+    AnsibleHostBase.__init__(self, ansible_adhoc, hostname)
+common/devices/base.py:47: in __init__
+    self.host = ansible_adhoc(become=True, host_pattern=hostname, *args, **kwargs)[hostname]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <pytest_ansible.host_manager.v213.HostManagerV213 object at 0x7f30de76b7d0>, item = 'ptf-clab'
+
+    def __getitem__(self, item):  # type: ignore[no-untyped-def]  # noqa: ANN001, ANN204
+        """Return a ModuleDispatcher instance described the provided `item`.
+
+        Raises:
+            KeyError: If the item does not exist.
+        """
+        # Handle slicing
+        if isinstance(item, slice):
+            new_item = "all["
+            if item.start is not None:
+                new_item += str(item.start)
+            new_item += "-"
+            if item.stop is not None:
+                new_item += str(item.stop)
+            item = new_item + "]"
+
+        if item in self.__dict__:
+            return self.__dict__[item]
+        if not self.has_matching_inventory(item):  # type: ignore[no-untyped-call]
+>           raise KeyError(item)
+E           KeyError: 'ptf-clab'
+
+/opt/venv/lib/python3.12/site-packages/pytest_ansible/host_manager/base.py:106: KeyError
+                                                                                                                                                                     100% ██████████
+================================================================================= warnings summary =================================================================================
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ptfadapter
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ansible_fixtures
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.loganalyzer
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.sanity_check
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.test_completeness
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.dualtor
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.fixtures.duthost_utils
+    self.import_plugin(import_spec)
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../../../opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93
+  /opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+ptf_runner.py:3
+  /var/src/sonic-mgmt-master/tests/ptf_runner.py:3: DeprecationWarning: 'pipes' is deprecated and slated for removal in Python 3.13
+    import pipes
+
+bgp/test_ping_bgp_neighbor.py::test_ping_bgp_neighbor[dut-None]
+  /opt/venv/lib/python3.12/site-packages/pytest_ansible/host_manager/v213.py:13: DeprecationWarning: Host management is deprecated and will be removed in a future release
+    class HostManagerV213(BaseHostManager):
+
+bgp/test_ping_bgp_neighbor.py::test_ping_bgp_neighbor[dut-None]
+bgp/test_ping_bgp_neighbor.py::test_ping_bgp_neighbor[dut-None]
+  /opt/venv/lib/python3.12/site-packages/ansible/plugins/loader.py:1485: UserWarning: AnsibleCollectionFinder has already been configured
+    warnings.warn('AnsibleCollectionFinder has already been configured')
+
+bgp/test_ping_bgp_neighbor.py::test_ping_bgp_neighbor[dut-None]
+bgp/test_ping_bgp_neighbor.py::test_ping_bgp_neighbor[dut-None]
+bgp/test_ping_bgp_neighbor.py::test_ping_bgp_neighbor[dut-None]
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=241) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================================= short test summary info ==============================================================================
+FAILED bgp/test_ping_bgp_neighbor.py::test_ping_bgp_neighbor[dut-None] - KeyError: 'ptf-clab'
+
+Results (3.53s):
+       1 error
+rwang@sonic-mgmt-test:/var/src/sonic-mgmt-master/tests$ python -m pytest test_interfaces.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+Test session starts (platform: linux, Python 3.12.3, pytest 9.0.2, pytest-sugar 1.1.1)
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.3', 'Platform': 'Linux-5.15.0-161-generic-x86_64-with-glibc2.39', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'plus': '0.8.1', 'cov': '7.0.0', 'allure-pytest': '2.15.3', 'ansible': '25.12.0', 'repeat': '0.9.4', 'sugar': '1.1.1', 'stress': '1.0.1', 'html': '4.1.1', 'xdist': '3.8.0', 'metadata': '3.1.1'}}
+ansible: 2.18.12
+rootdir: /var/src/sonic-mgmt-master/tests
+configfile: pytest.ini
+plugins: plus-0.8.1, cov-7.0.0, allure-pytest-2.15.3, ansible-25.12.0, repeat-0.9.4, sugar-1.1.1, stress-1.0.1, html-4.1.1, xdist-3.8.0, metadata-3.1.1
+collected 1 item
+
+
+――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― ERROR at setup of test_interfaces[dut-None] ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
+
+enhance_inventory = None, ansible_adhoc = <function ansible_adhoc.<locals>.init_host_mgr at 0x7fac0002de40>
+tbinfo = {'auto_recover': 'False', 'comment': 'SONiC-VS Containerlab T0 Topology with 2 leaf nodes', 'conf-name': 'clab-sonic-vs-t0', 'duts': ['dut'], ...}
+duthost = <MultiAsicSonicHost dut>, request = <SubRequest 'ptfhosts' for <Function test_interfaces[dut-None]>>
+
+    @pytest.fixture(scope="session")
+    def ptfhosts(enhance_inventory, ansible_adhoc, tbinfo, duthost, request):
+        _hosts = []
+        if 'ptp' in tbinfo['topo']['name']:
+            return None
+        if tbinfo['topo']['name'].startswith("nut-"):
+            return None
+        if "ptf_image_name" in tbinfo and "docker-keysight-api-server" in tbinfo["ptf_image_name"]:
+            return None
+        if "ptf" in tbinfo:
+>           _hosts.append(PTFHost(ansible_adhoc, tbinfo["ptf"], duthost, tbinfo,
+
+conftest.py:791:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+common/devices/ptf.py:27: in __init__
+    AnsibleHostBase.__init__(self, ansible_adhoc, hostname)
+common/devices/base.py:47: in __init__
+    self.host = ansible_adhoc(become=True, host_pattern=hostname, *args, **kwargs)[hostname]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <pytest_ansible.host_manager.v213.HostManagerV213 object at 0x7fabffdd3da0>, item = 'ptf-clab'
+
+    def __getitem__(self, item):  # type: ignore[no-untyped-def]  # noqa: ANN001, ANN204
+        """Return a ModuleDispatcher instance described the provided `item`.
+
+        Raises:
+            KeyError: If the item does not exist.
+        """
+        # Handle slicing
+        if isinstance(item, slice):
+            new_item = "all["
+            if item.start is not None:
+                new_item += str(item.start)
+            new_item += "-"
+            if item.stop is not None:
+                new_item += str(item.stop)
+            item = new_item + "]"
+
+        if item in self.__dict__:
+            return self.__dict__[item]
+        if not self.has_matching_inventory(item):  # type: ignore[no-untyped-call]
+>           raise KeyError(item)
+E           KeyError: 'ptf-clab'
+
+/opt/venv/lib/python3.12/site-packages/pytest_ansible/host_manager/base.py:106: KeyError
+                                                                                                                                                                     100% ██████████
+================================================================================= warnings summary =================================================================================
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ptfadapter
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ansible_fixtures
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.loganalyzer
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.sanity_check
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.test_completeness
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.dualtor
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.fixtures.duthost_utils
+    self.import_plugin(import_spec)
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../../../opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93
+  /opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+ptf_runner.py:3
+  /var/src/sonic-mgmt-master/tests/ptf_runner.py:3: DeprecationWarning: 'pipes' is deprecated and slated for removal in Python 3.13
+    import pipes
+
+test_interfaces.py::test_interfaces[dut-None]
+  /opt/venv/lib/python3.12/site-packages/pytest_ansible/host_manager/v213.py:13: DeprecationWarning: Host management is deprecated and will be removed in a future release
+    class HostManagerV213(BaseHostManager):
+
+test_interfaces.py::test_interfaces[dut-None]
+test_interfaces.py::test_interfaces[dut-None]
+  /opt/venv/lib/python3.12/site-packages/ansible/plugins/loader.py:1485: UserWarning: AnsibleCollectionFinder has already been configured
+    warnings.warn('AnsibleCollectionFinder has already been configured')
+
+test_interfaces.py::test_interfaces[dut-None]
+test_interfaces.py::test_interfaces[dut-None]
+test_interfaces.py::test_interfaces[dut-None]
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=307) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================================= short test summary info ==============================================================================
+FAILED test_interfaces.py::test_interfaces[dut-None] - KeyError: 'ptf-clab'
+
+Results (3.61s):
+       1 error
+rwang@sonic-mgmt-test:/var/src/sonic-mgmt-master/tests$ python -m pytest snmp/test_snmp_loopback.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+Test session starts (platform: linux, Python 3.12.3, pytest 9.0.2, pytest-sugar 1.1.1)
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.3', 'Platform': 'Linux-5.15.0-161-generic-x86_64-with-glibc2.39', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'plus': '0.8.1', 'cov': '7.0.0', 'allure-pytest': '2.15.3', 'ansible': '25.12.0', 'repeat': '0.9.4', 'sugar': '1.1.1', 'stress': '1.0.1', 'html': '4.1.1', 'xdist': '3.8.0', 'metadata': '3.1.1'}}
+ansible: 2.18.12
+rootdir: /var/src/sonic-mgmt-master/tests
+configfile: pytest.ini
+plugins: plus-0.8.1, cov-7.0.0, allure-pytest-2.15.3, ansible-25.12.0, repeat-0.9.4, sugar-1.1.1, stress-1.0.1, html-4.1.1, xdist-3.8.0, metadata-3.1.1
+collecting 0 items
+――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― ERROR collecting snmp/test_snmp_loopback.py ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
+/opt/venv/lib/python3.12/site-packages/pluggy/_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/_pytest/python.py:249: in pytest_pycollect_makeitem
+    return list(collector._genfunctions(name, obj))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/_pytest/python.py:475: in _genfunctions
+    self.ihook.pytest_generate_tests.call_extra(methods, dict(metafunc=metafunc))
+/opt/venv/lib/python3.12/site-packages/pluggy/_hooks.py:573: in call_extra
+    return self._hookexec(self.name, hookimpls, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.12/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+conftest.py:1883: in pytest_generate_tests
+    hosts_per_hwsku = generate_params_hostname_rand_per_hwsku(metafunc, frontend_only=True)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+conftest.py:1452: in generate_params_hostname_rand_per_hwsku
+    hosts_per_hwsku = get_hosts_per_hwsku(request, hosts)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+conftest.py:1475: in get_hosts_per_hwsku
+    pytest.fail("Test selected require a node per hwsku, but 'hwsku' for '{}' not defined in the inventory"
+E   Failed: Test selected require a node per hwsku, but 'hwsku' for 'dut' not defined in the inventory
+--------------------------------------------------------------------------------- Captured stdout ----------------------------------------------------------------------------------
+Using packet manipulation module: ptf.packet_scapy
+collected 0 items / 1 error
+
+================================================================================= warnings summary =================================================================================
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ptfadapter
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ansible_fixtures
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.loganalyzer
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.sanity_check
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.test_completeness
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.dualtor
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.fixtures.duthost_utils
+    self.import_plugin(import_spec)
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../../../opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93
+  /opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+ptf_runner.py:3
+  /var/src/sonic-mgmt-master/tests/ptf_runner.py:3: DeprecationWarning: 'pipes' is deprecated and slated for removal in Python 3.13
+    import pipes
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================================= short test summary info ==============================================================================
+FAILED snmp/test_snmp_loopback.py - Failed: Test selected require a node per hwsku, but 'hwsku' for 'dut' not defined in the inventory
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Results (2.07s):
+rwang@sonic-mgmt-test:/var/src/sonic-mgmt-master/tests$ python -m pytest ssh/test_ssh_default_password.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+Test session starts (platform: linux, Python 3.12.3, pytest 9.0.2, pytest-sugar 1.1.1)
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.3', 'Platform': 'Linux-5.15.0-161-generic-x86_64-with-glibc2.39', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'plus': '0.8.1', 'cov': '7.0.0', 'allure-pytest': '2.15.3', 'ansible': '25.12.0', 'repeat': '0.9.4', 'sugar': '1.1.1', 'stress': '1.0.1', 'html': '4.1.1', 'xdist': '3.8.0', 'metadata': '3.1.1'}}
+ansible: 2.18.12
+rootdir: /var/src/sonic-mgmt-master/tests
+configfile: pytest.ini
+plugins: plus-0.8.1, cov-7.0.0, allure-pytest-2.15.3, ansible-25.12.0, repeat-0.9.4, sugar-1.1.1, stress-1.0.1, html-4.1.1, xdist-3.8.0, metadata-3.1.1
+collected 1 item
+
+ ssh/test_ssh_default_password.py::test_ssh_default_password s                                                                                                       100% ██████████
+================================================================================= warnings summary =================================================================================
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ptfadapter
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.ansible_fixtures
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.loganalyzer
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.sanity_check
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.plugins.test_completeness
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.dualtor
+    self.import_plugin(import_spec)
+
+../../../../opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852
+  /opt/venv/lib/python3.12/site-packages/_pytest/config/__init__.py:852: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.common.fixtures.duthost_utils
+    self.import_plugin(import_spec)
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../../../opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93
+  /opt/venv/lib/python3.12/site-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+ptf_runner.py:3
+  /var/src/sonic-mgmt-master/tests/ptf_runner.py:3: DeprecationWarning: 'pipes' is deprecated and slated for removal in Python 3.13
+    import pipes
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+Results (1.53s):
+       1 skipped
+rwang@sonic-mgmt-test:/var/src/sonic-mgmt-master/tests$
+

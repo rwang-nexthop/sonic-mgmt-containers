@@ -1,0 +1,38 @@
+---
+# Playbook to deploy minigraph to SONiC DUT
+# Usage: ansible-playbook -i clab_inventory.yml deploy_minigraph.yml
+
+- hosts: sonic
+  gather_facts: no
+  tasks:
+    - name: Create /etc/sonic directory on DUT
+      file:
+        path: /etc/sonic
+        state: directory
+        mode: '0755'
+      become: yes
+
+    - name: Generate minigraph file from template
+      template:
+        src: templates/minigraph_template.j2
+        dest: /etc/sonic/minigraph.xml
+      become: yes
+
+    - name: Verify minigraph.xml was created
+      stat:
+        path: /etc/sonic/minigraph.xml
+      register: minigraph_stat
+
+    - name: Display minigraph creation result
+      debug:
+        msg: "Minigraph file created: {{ minigraph_stat.stat.exists }}"
+
+    - name: Display minigraph content (first 20 lines)
+      shell: head -20 /etc/sonic/minigraph.xml
+      register: minigraph_content
+      become: yes
+
+    - name: Show minigraph content
+      debug:
+        msg: "{{ minigraph_content.stdout_lines }}"
+

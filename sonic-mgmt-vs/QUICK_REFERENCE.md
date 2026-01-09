@@ -1,12 +1,33 @@
 # Quick Reference Guide
 
-## One-Command Deployment
+## One-Command Deployment (With PTF)
 
 ```bash
 cd sonic-mgmt-vs
 chmod +x scripts/*.sh
 bash scripts/deploy_complete.sh
 ```
+
+**Note:** This deployment now includes PTF (Packet Test Framework) container for running comprehensive tests.
+
+## Important: After Uploading to Remote Server
+
+**You MUST destroy the old topology before deploying the new one with PTF:**
+
+```bash
+cd /home/rwang/sonic-mgmt-vs
+
+# Destroy old topology (without PTF)
+sudo containerlab destroy -t sonic-vs-t0.clab.yml --cleanup
+
+# Deploy new topology (with PTF)
+sudo containerlab deploy -t sonic-vs-t0.clab.yml
+
+# Verify all containers are running (including ptf-clab)
+docker ps | grep sonic-vs-t0
+```
+
+---
 
 ## Manual Step-by-Step
 
@@ -82,21 +103,51 @@ ssh admin@172.20.20.2 "ping -c 3 12.12.12.12"
 ssh admin@172.20.20.11 "ping -c 3 12.12.12.12"
 ```
 
-### 7. Setup sonic-mgmt Container (Optional - for testing)
+### 7. Setup sonic-mgmt Container (For Running Tests)
 ```bash
 cd sonic-mgmt-master
-./setup-container.sh -n sonic-mgmt-test -d /var/src -m /Users/rwang/Python/Projects/sonic-mgmt-vs
+./setup-container.sh -n sonic-mgmt-test -d /var/src -m /home/rwang/sonic-mgmt-vs
 ```
 
-### 8. Setup Ansible (Optional - for testing)
+**Important:** The `-m` flag must point to the remote path on ts107 (`/home/rwang/sonic-mgmt-vs`), not your local macOS path.
+
+### 8. Enter sonic-mgmt Container
 ```bash
-cd ../scripts
-bash setup_ansible.sh
+docker exec -it sonic-mgmt-test bash
 ```
 
-### 9. Verify Ansible Connectivity (Optional - for testing)
+### 9. Run Tests Inside Container
 ```bash
-bash verify_ansible_connectivity.sh
+cd /var/src/sonic-mgmt-master/tests
+
+# BGP Facts Test
+python -m pytest bgp/test_bgp_fact.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+
+# Ping BGP Neighbors Test
+python -m pytest bgp/test_ping_bgp_neighbor.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+
+# Interface Status Test
+python -m pytest test_interfaces.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+```
+
+See `TEST_COMMANDS.md` for all available tests.
+
+### 10. Setup Ansible (Optional)
+```bash
+cd /var/src/ansible
+ansible -i clab_inventory.yml sonic_devices -m ping
 ```
 
 ## Post-Deployment Verification Checklist
@@ -126,8 +177,8 @@ ssh admin@172.20.20.11
 # Leaf2 via SSH
 ssh admin@172.20.20.12
 
-# sonic-mgmt container (if running)
-docker exec -u vscode -it sonic-mgmt-test bash
+# sonic-mgmt container (if running, change user and IP based on output of deploying sonic-mgmt script)
+ssh -i ~/.ssh/id_rsa_docker_sonic_mgmt rwang@172.17.0.3
 ```
 
 ### Check Status
@@ -179,37 +230,66 @@ ssh admin@172.20.20.12 "ping -c 3 1.1.1.1"
 
 ### Run Tests
 
+All tests are run inside the sonic-mgmt container. See `TEST_COMMANDS.md` for complete list of available tests.
+
 ```bash
-# Inside sonic-mgmt container
+# Enter container first
+docker exec -it sonic-mgmt-test bash
+
+# Navigate to tests directory
 cd /var/src/sonic-mgmt-master/tests
 
-# BGP tests (with required testbed parameters)
+# Run any test with this format:
+python -m pytest <test_file> -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+
+# Examples:
+# BGP Facts
 python -m pytest bgp/test_bgp_fact.py -v \
   --testbed clab-sonic-vs-t0 \
   --testbed_file clab_testbed.yaml \
   --host-pattern dut \
   --inventory /var/src/ansible/clab_inventory.yml
 
-# Specific test
-python -m pytest bgp/test_bgp_neighbor.py::test_bgp_neighbor -v \
+# Ping BGP Neighbors
+python -m pytest bgp/test_ping_bgp_neighbor.py -v \
+  --testbed clab-sonic-vs-t0 \
+  --testbed_file clab_testbed.yaml \
+  --host-pattern dut \
+  --inventory /var/src/ansible/clab_inventory.yml
+
+# Interface Status
+python -m pytest test_interfaces.py -v \
   --testbed clab-sonic-vs-t0 \
   --testbed_file clab_testbed.yaml \
   --host-pattern dut \
   --inventory /var/src/ansible/clab_inventory.yml
 ```
 
+**Note:** Tests marked as SKIPPED are expected - they require specific topology features not present in this containerlab setup.
+
 ### Ansible Commands
 
 ```bash
-# Inside sonic-mgmt container
+# Enter container first
+docker exec -it sonic-mgmt-test bash
+
+# Navigate to ansible directory
 cd /var/src/ansible
 
-# Ping all hosts
+# Ping all hosts (verify connectivity)
 ansible -i clab_inventory.yml sonic_devices -m ping
 
 # Run command on all hosts
 ansible -i clab_inventory.yml sonic_devices -m shell \
-  -a "show version"
+  -a "vtysh -c 'show bgp summary'"
+
+# Run command on specific host
+ansible -i clab_inventory.yml dut -m shell \
+  -a "vtysh -c 'show bgp ipv4 unicast'"
 
 # Run playbook
 ansible-playbook -i clab_inventory.yml playbook.yml

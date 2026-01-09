@@ -7,6 +7,8 @@ topology:
   kinds:
     sonic-vm:
       image: container-registry.sw.internal.nexthop.ai/clab-sonic:10368
+    linux:
+      image: container-registry.sw.internal.nexthop.ai/docker-ptf:202411
 
   nodes:
     # DUT - Device Under Test (SONiC-VM)
@@ -14,17 +16,30 @@ topology:
       kind: sonic-vm
       mgmt-ipv4: 172.20.20.2
       startup-config: ./configs/dut/config_db.json
+      binds:
+        - ./configs/dut/minigraph.xml:/etc/sonic/minigraph.xml
 
     # Leaf Neighbors (SONiC-VM)
     leaf1:
       kind: sonic-vm
       mgmt-ipv4: 172.20.20.11
       startup-config: ./configs/leaf1/config_db.json
+      binds:
+        - ./configs/leaf1/minigraph.xml:/etc/sonic/minigraph.xml
 
     leaf2:
       kind: sonic-vm
       mgmt-ipv4: 172.20.20.12
       startup-config: ./configs/leaf2/config_db.json
+      binds:
+        - ./configs/leaf2/minigraph.xml:/etc/sonic/minigraph.xml
+
+    # PTF - Packet Test Framework
+    ptf-clab:
+      kind: linux
+      mgmt-ipv4: 172.20.20.100
+      env:
+        PYTHONPATH: /ptf
 
   links:
     # DUT to Leaf connections (T0 topology)
@@ -33,4 +48,7 @@ topology:
 
     # Inter-leaf connection for redundancy
     - endpoints: ["leaf1:eth2", "leaf2:eth2"]
+
+    # DUT to PTF connection (for packet testing)
+    - endpoints: ["dut:eth3", "ptf-clab:eth1"]
 

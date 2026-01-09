@@ -1,0 +1,860 @@
+﻿SONiC Testbed Deployment Codeflow
+Introduction
+This guide provides a comprehensive explanation of the SONiC testbed deployment process in the sonic-mgmt repository. The deployment process consists of two shell scripts and three sequential steps that create a complete virtual network environment for testing SONiC features and functionality. Each step builds upon the previous one to construct a fully functional testbed with virtual machines, networking components, and proper configuration.
+Overview
+The testbed deployment process consists of five key commands:
+1. Setting up the management environment.
+2. Creating a container environment.
+3. Starting Topology VMs (start-topo-vms): Creates and starts the virtual machines needed for the testbed.
+4. Adding Topology (add-topo): Creates the PTF container, configures the network connections between VMs and DUT, and sets up the fanout switches.
+5. Deploying Minigraph (deploy-mg): Generates and applies the minigraph configuration to the DUT based on the testbed topology.
+Preparation Stage: Setup Management Environment
+Before running any of the SONiC testbed deployment commands, you need to prepare your environment by setting up the management bridge and container. This involves two critical scripts:
+1. Setup Management Bridge (setup_management.sh)
+This script creates the management bridge (br1) required for communication between the host and the virtual testbed components:
+bash
+#!/bin/bash
+if [[ $(id -u) -ne 0 ]]; then
+    echo "Root privilege required"
+    exit
+fi
+# ... [options parsing code] ...
+
+
+# The script performs the following tasks:
+# 1. Updates apt package lists
+# 2. Installs j2cli (Jinja2 templating) 
+# 3. Installs bridge-utils package if needed
+# 4. Installs net-tools package if needed
+# 5. Installs ethtool package if needed
+# 6. Optionally deletes existing br1 bridge
+# 7. Creates and configures bridge interface br1 with IP 10.250.0.1/24 and IPv6 fec0::1/64
+The management bridge (br1) serves as the communication channel between the host and the virtual machines in the testbed. It's configured with IP address 10.250.0.1/24, allowing the host to communicate with VMs on the 10.250.0.0/24 subnet.
+Part 2. Setup Container Environment (setup_container.sh)
+After the management bridge is set up, you need to create a Docker container environment that will host the SONiC management tools. The setup_container.sh script:
+1. Defines constants for Docker registry, image names, and user credentials
+2. Sets up SSH key pairs for container access
+3. Creates a Docker container with proper user permissions and network configuration
+4. Maps local directories into the container
+5. Starts SSH service in the container
+The container provides a consistent environment with all the required tools for managing the SONiC testbed, ensuring that dependencies and configurations are properly set up.
+Key features of the container setup:
+* Uses either a local Docker image or pulls from the specified registry
+* Creates a container with the same UID/GID as the host user
+* Sets up password and SSH key-based authentication
+* Maps the sonic-mgmt directory into the container
+* Adds Docker group permissions for container operations
+
+
+Part 3: Starting Topology VMs (start-topo-vms)
+Command Breakdown
+* -m veos_vtb: Specifies the VM inventory file
+* -t vtestbed.yaml: Specifies the testbed definition file
+* -k vsonic: Specifies the VM type (virtual SONiC)
+* t0_sonic_mgmt_austen: The testbed name defined in vtestbed.yaml
+* password.txt: Vault password file for Ansible
+Process Flow
+The testbed-cli.sh script reads the testbed information from vtestbed.yaml using the read_yaml function:
+* Extracts testbed parameters like vm_set_name, topo, ptf_imagename, server, vm_base, etc.
+* The script then calls the start_topo_vms function, which executes:
+ansible-playbook -i veos_vtb testbed_start_VMs.yml --vault-password-file=password.txt -l server_name -e VM_base=vm_base -e vm_type=vsonic -e topo=t0
+The testbed_start_VMs.yml playbook:
+* Targets hosts defined in the inventory file that match servers:&vm_host
+* Applies the vm_set role with action: 'start'
+The vm_set role's start.yml tasks:
+* Loads topology variables from vars/topo_t0.yml
+* Creates directories for VM images and disks
+* Downloads VM images if needed (vsonic image in this case)
+* Creates VM networks using the vm_topology module
+* Starts VMs using the start_vm.yml task for each VM in the topology
+* Kickstarts VMs using the kickstart_vm.yml task
+Key Files Involved
+* testbed-cli.sh: Main script that orchestrates the process
+* vtestbed.yaml: Testbed definition file
+* veos_vtb: VM inventory file
+* ansible/testbed_start_VMs.yml: Playbook for starting VMs
+* ansible/roles/vm_set/tasks/start.yml: Tasks for starting VMs
+* ansible/roles/vm_set/tasks/start_vm.yml: Tasks for starting individual VMs
+* ansible/roles/vm_set/tasks/kickstart_vm.yml: Tasks for kickstarting VMs
+* vars/topo_t0.yml: Topology definition file
+Detailed Code Flow for start-topo-vms Command
+High-Level Flow Diagram
+testbed-cli.sh
+    ├── read_yaml() - Parses vtestbed.yaml
+    └── start_topo_vms()
+        └── ansible-playbook testbed_start_VMs.yml
+            └── vm_set role (action: 'start')
+                ├── Load topology variables
+                ├── Create VM directories
+                ├── Download VM images
+                ├── Create VM networks
+                ├── Start VMs (loop through VM_hosts)
+                │   └── start_vm.yml
+                └── Kickstart VMs (loop through VM_hosts)
+                    └── kickstart_vm.yml
+1. Entry Point: testbed-cli.sh
+When you run the start-topo-vms command, the script first parses the command-line arguments:
+subcmd=$1  # This will be "start-topo-vms"
+testbed_name=$1  # This will be "t0_sonic_mgmt_austen"
+passwd=$2  # This will be "password.txt"
+2. Reading Testbed Information: read_yaml()
+The script then calls read_yaml() to extract information from vtestbed.yaml:
+read_file ${testbed_name}
+This function extracts key parameters:
+* vm_set_name (e.g., "vms1-1")
+* topo (e.g., "t0")
+* ptf_imagename (e.g., "docker-ptf")
+* ptf_ip (e.g., "10.255.0.188/24")
+* server (e.g., "server_1")
+* vm_base (e.g., "VM0100")
+* duts (e.g., "sonic-dut-01")
+Example from vtestbed.yaml:
+- conf-name: t0_sonic_mgmt_austen
+  group-name: vms1-1
+  topo: t0
+  ptf_image_name: docker-ptf
+  ptf: ptf-1
+  ptf_ip: 10.255.0.188/24
+  ptf_ipv6: fec0::ffff:afa:2/64
+  server: server_1
+  vm_base: VM0100
+  dut:
+    - sonic-dut-01
+  comment: T0 topology for sonic-mgmt testing
+3. Starting Topology VMs: start_topo_vms()
+The script then calls start_topo_vms() which executes the Ansible playbook:
+ANSIBLE_SCP_IF_SSH=y ansible-playbook -i $vmfile testbed_start_VMs.yml --vault-password-file="${passwd}" -l "${server}" \
+    -e VM_base="$vm_base" -e vm_type="$vm_type" -e topo="$topo" $@
+With our example values:
+ANSIBLE_SCP_IF_SSH=y ansible-playbook -i veos_vtb testbed_start_VMs.yml --vault-password-file="password.txt" -l "server_1" \
+    -e VM_base="VM0100" -e vm_type="vsonic" -e topo="t0" -vvv
+4. Ansible Playbook: testbed_start_VMs.yml
+This playbook targets hosts that match both servers and vm_host groups in the inventory:
+- hosts: servers:&vm_host
+  gather_facts: no
+  tasks:
+  roles:
+    - { role: vm_set, action: 'start' }
+5. VM Set Role: roles/vm_set/tasks/start.yml
+This is where the main work happens. Let's break down the key tasks:
+5.1. Setting VM Type and Loading Topology Variables
+- name: Require VMs as CEOS by default
+  set_fact:
+    vm_type: "ceos"
+  when: vm_type is not defined
+
+
+- name: Load topo variables
+  include_vars: "vars/topo_{{ topo }}.yml"
+  when: topo is defined
+This loads the topology-specific variables from vars/topo_t0.yml, which contains:
+* VM definitions
+* Network configurations
+* Port mappings
+* Interface configurations
+Example from topo_t0.yml:
+topology:
+  VMs:
+    ARISTA01T2:
+      vm_offset: 0
+      vlans:
+        - 0
+        - 1
+    ARISTA02T2:
+      vm_offset: 1
+      vlans:
+        - 2
+        - 3
+    # ... more VMs
+5.2. Filtering VMs for the Specified Topology
+- name: Filter VMs for specified topology
+  set_fact: VM_hosts={{ VM_hosts | filter_vm_targets(topology['VMs'], VM_base) | sort }}
+  when: topology['VMs'] is defined and VM_base is defined
+This creates a list of VM hostnames based on the topology and VM_base. For example, if VM_base is "VM0100" and the topology has VMs with offsets 0, 1, 2, 3, the VM_hosts would be:
+* VM0100 (ARISTA01T2)
+* VM0101 (ARISTA02T2)
+* VM0102 (ARISTA03T2)
+* VM0103 (ARISTA04T2)
+5.3. Creating Directories for VM Images and Disks
+- name: Create directory for vm images and vm disks
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - "{{ root_path }}/images"
+    - "{{ root_path }}/disks"
+This ensures the necessary directories exist for storing VM images and disks.
+5.4. Downloading VM Images
+The role checks if the required VM image exists, and if not, downloads it:
+- block:
+    - name: Check SONiC image
+      stat: path={{ root_path }}/images/{{ vsonic_image_filename }}
+      register: sonic_img_stat
+
+
+    - name: Download SONiC image if no local file exists
+      block:
+        # ... download logic ...
+      when: not sonic_img_stat.stat.exists
+  when: (vm_type | lower) == "vsonic"
+For vSonic, it downloads the SONiC VM image from the specified URL.
+5.5. Creating VM Networks
+- name: Create VMs network
+  become: yes
+  vm_topology:
+    cmd: 'create'
+    vm_names: "{{ VM_hosts }}"
+    fp_mtu: "{{ fp_mtu_size }}"
+    max_fp_num: "{{ max_fp_num }}"
+This task uses the custom vm_topology module to create the network infrastructure for the VMs. The module:
+* Creates a management bridge (br-mgmt) if it doesn't exist
+* Creates a backplane bridge (br-back) for each VM set
+* Creates front panel bridges for each VM port
+* Sets up the necessary tap interfaces
+5.6. Starting VMs
+- name: Start VMs
+  include_tasks: start_vm.yml
+  vars:
+    vm_name: "{{ item }}"
+    hostname: "{{ vm_name }}"
+    mgmt_ip_address: "{{ hostvars[vm_name]['ansible_host'] }}"
+    serial_port: "{{ vm_console_base|int + vm_name[4:]|int }}"
+    src_disk_image: "{{ root_path }}/images/{{ src_image_name }}"
+    disk_image_dir: "{{ root_path }}/disks"
+    cdrom_image: "{{ root_path }}/images/{{ veos_cd_image_filename }}"
+    mgmt_tap: "{{ vm_name }}-m"
+    backplane_tap: "{{ vm_name }}-back"
+  with_items: "{{ VM_hosts }}"
+For each VM in VM_hosts, this includes the start_vm.yml task file with specific variables.
+6. Starting Individual VMs: roles/vm_set/tasks/start_vm.yml
+This task file handles the creation and starting of individual VMs:
+- name: Create disk image for {{ vm_name }}
+  command: cp "{{ src_disk_image }}" "{{ disk_image_dir }}/{{ vm_name }}.img"
+  args:
+    creates: "{{ disk_image_dir }}/{{ vm_name }}.img"
+
+
+- name: Define VM {{ vm_name }}
+  virt:
+    name: "{{ vm_name }}"
+    command: define
+    xml: "{{ lookup('template', 'templates/{{ vm_type }}.xml.j2') }}"
+  become: yes
+
+
+- name: Start VM {{ vm_name }}
+  virt:
+    name: "{{ vm_name }}"
+    state: running
+  become: yes
+The key steps are:
+* Copy the source disk image to create a VM-specific disk image
+* Define the VM using a template (e.g., templates/vsonic.xml.j2 for vSonic VMs)
+* Start the VM
+The VM XML template defines:
+* CPU and memory allocation
+* Disk configuration
+* Network interfaces (management, backplane, and front panel)
+* Serial console
+Example for a vSonic VM:
+<domain type='kvm'>
+  <name>{{ vm_name }}</name>
+  <memory unit='GB'>8</memory>
+  <currentMemory unit='GB'>8</currentMemory>
+  <vcpu placement='static'>4</vcpu>
+  <!-- ... disk, network interfaces, etc. ... -->
+</domain>
+7. Kickstarting VMs: roles/vm_set/tasks/kickstart_vm.yml
+After starting all VMs, the role kickstarts them:
+- name: Kickstart VMs
+  include_tasks: kickstart_vm.yml
+  vars:
+    vm_name: "{{ item }}"
+    hostname: "{{ vm_name }}"
+    mgmt_ip_address: "{{ hostvars[vm_name]['ansible_host'] }}"
+    serial_port: "{{ vm_console_base|int + vm_name[4:]|int }}"
+    src_disk_image: "{{ root_path }}/images/{{ src_image_name }}"
+    disk_image_dir: "{{ root_path }}/disks"
+    cdrom_image: "{{ root_path }}/images/{{ veos_cd_image_filename }}"
+    mgmt_tap: "{{ vm_name }}-m"
+    backplane_tap: "{{ vm_name }}-back"
+  with_items: "{{ VM_hosts }}"
+The kickstart_vm.yml task file:
+- name: Wait until VM {{ vm_name }} is up
+  wait_for:
+    host: "{{ mgmt_ip_address }}"
+    port: 22
+    state: started
+    delay: 10
+    timeout: 300
+  register: vm_status
+  ignore_errors: yes
+
+
+- name: Set VM {{ vm_name }} kickstart status
+  set_fact:
+    kickstart_failed_vms: "{{ kickstart_failed_vms + [vm_name] }}"
+  when: vm_status.failed is defined and vm_status.failed
+This waits for the VM to become accessible via SSH, and if it fails, adds the VM to a list of failed VMs.
+VM Network Architecture
+The VM network architecture created by this process is:
+                    +----------------+
+                    |    br-mgmt     |
+                    +----------------+
+                           |
+                           | (VM0100-m)
+                           |
+                    +----------------+
+                    |     VM0100     |
+                    +----------------+
+                      |     |     |
+                      |     |     |
+                      |     |     |
+                      |     |     |
+                      |     |     |
+                    +-+   +-+   +-+
+                    |B|   |F|   |F|
+                    |P|   |P|   |P|
+                    +-+   +-+   +-+
+                     |     |     |
+                     |     |     |
+                     v     v     v
+                 To other  To DUT ports
+                   VMs
+Where:
+* br-mgmt: Management bridge connecting all VMs to the management network
+* BP: Backplane bridge connecting VMs to each other
+* FP: Front panel bridges connecting VMs to DUT ports
+Part 4: Adding Topology (add-topo)
+Command Breakdown
+* -t vtestbed.yaml: Specifies the testbed definition file
+* -m veos_vtb: Specifies the VM inventory file
+* -k vsonic: Specifies the VM type (virtual SONiC)
+* <your topology>: The testbed name defined in vtestbed.yaml
+* password.txt: Vault password file for Ansible
+Process Flow
+The testbed-cli.sh script reads the testbed information from vtestbed.yaml using the read_yaml function. The script then calls the add_topo function, which in turn calls:
+* add_topo_ptf: Deploys PTF container for the testbed
+* add_topo_fanout: Deploys fanout settings for the testbed
+The add_topo_ptf function executes:
+ansible-playbook -i veos_vtb -i inventory_name testbed_add_vm_topology.yml --vault-password-file=password.txt -l server_name -e testbed_name=testbed_name -e duts_name=duts -e VM_base=vm_base -e ptf_ip=ptf_ip -e topo=topo -e vm_set_name=vm_set_name -e ptf_imagename=ptf_imagename -e vm_type=vsonic -e ptf_ipv6=ptf_ipv6
+The testbed_add_vm_topology.yml playbook:
+* Performs pre-task validations
+* Loads variables from vars/topo_<topo>.yml
+* Applies the vm_set role with action: 'add_topo'
+* Configures VMs with appropriate roles (sonic, eos, or cisco)
+The vm_set role's add_topo.yml tasks:
+* Creates a PTF container
+* Updates PTF password
+* Gets DUT ports
+* Creates VLAN ports for DUT
+* Binds the topology to VMs using the vm_topology module
+* Changes MAC addresses for PTF interfaces
+* Starts PTF portchannel service
+* Announces routes
+* Starts simulators if needed
+The add_topo_fanout function executes:
+ansible-playbook fanout.yml -i inventory_name --vault-password-file=password.txt
+Key Files Involved
+* testbed-cli.sh: Main script that orchestrates the process
+* vtestbed.yaml: Testbed definition file
+* veos_vtb: VM inventory file
+* ansible/testbed_add_vm_topology.yml: Playbook for adding topology
+* ansible/roles/vm_set/tasks/add_topo.yml: Tasks for adding topology
+* ansible/roles/vm_set/tasks/get_dut_port.yml: Tasks for getting DUT ports
+* ansible/roles/vm_set/tasks/create_dut_port.yml: Tasks for creating DUT ports
+* ansible/roles/vm_set/tasks/ptf_change_mac.yml: Tasks for changing MAC addresses
+* ansible/roles/vm_set/tasks/announce_routes.yml: Tasks for announcing routes
+* ansible/fanout.yml: Playbook for configuring fanout switches
+Detailed Code Flow for add-topo Command
+High-Level Flow Diagram
+testbed-cli.sh
+    ├── read_yaml() - Parses vtestbed.yaml
+    └── add_topo()
+        ├── add_topo_ptf()
+        │   └── ansible-playbook testbed_add_vm_topology.yml
+        │       ├── vm_set role (action: 'add_topo')
+        │       │   ├── Create PTF container
+        │       │   ├── Get DUT ports
+        │       │   ├── Create VLAN ports
+        │       │   ├── Bind topology to VMs
+        │       │   ├── Change MAC addresses
+        │       │   ├── Start PTF portchannel
+        │       │   └── Announce routes
+        │       └── eos/sonic/cisco role (based on vm_type)
+        │           └── Configure VMs
+        └── add_topo_fanout()
+            └── ansible-playbook fanout.yml
+                └── Configure fanout switches
+1. Entry Point: testbed-cli.sh
+When you run the add-topo command, the script first parses the command-line arguments:
+subcmd=$1  # This will be "add-topo"
+testbed_name=$1  # This will be "t0_sonic_mgmt_austen"
+passwd=$2  # This will be "password.txt"
+2. Reading Testbed Information: read_yaml()
+The script calls read_yaml() to extract information from vtestbed.yaml:
+read_file ${testbed_name}
+This extracts key parameters:
+* vm_set_name (e.g., "vms1-1")
+* topo (e.g., "t0")
+* ptf_imagename (e.g., "docker-ptf")
+* ptf_ip (e.g., "10.255.0.188/24")
+* server (e.g., "server_1")
+* vm_base (e.g., "VM0100")
+* duts (e.g., "sonic-dut-01")
+3. Adding Topology: add_topo()
+The script calls add_topo() which executes two functions:
+add_topo_ptf $testbed_name $passwd $@
+add_topo_fanout $testbed_name $passwd $@
+Let's examine each in detail.
+4. Adding PTF Container: add_topo_ptf()
+This function executes the Ansible playbook:
+ANSIBLE_SCP_IF_SSH=y ansible-playbook -i $vmfile -i ${inv_name} testbed_add_vm_topology.yml --vault-password-file="${passwd}" -l "$server" \
+      -e testbed_name="$testbed_name" -e duts_name="$duts" -e VM_base="$vm_base" \
+      -e ptf_ip="$ptf_ip" -e topo="$topo" -e vm_set_name="$vm_set_name" \
+      -e ptf_imagename="$ptf_imagename" -e vm_type="$vm_type" -e ptf_ipv6="$ptf_ipv6" \
+      -e ptf_extra_mgmt_ip="$ptf_extra_mgmt_ip" -e netns_mgmt_ip="$netns_mgmt_ip" \
+      $ansible_options $@
+With our example values:
+ANSIBLE_SCP_IF_SSH=y ansible-playbook -i veos_vtb -i lab testbed_add_vm_topology.yml --vault-password-file="password.txt" -l "server_1" \
+      -e testbed_name="t0_sonic_mgmt_austen" -e duts_name="sonic-dut-01" -e VM_base="VM0100" \
+      -e ptf_ip="10.255.0.188/24" -e topo="t0" -e vm_set_name="vms1-1" \
+      -e ptf_imagename="docker-ptf" -e vm_type="vsonic" -e ptf_ipv6="fec0::ffff:afa:2/64" \
+      -e ptf_extra_mgmt_ip="" -e netns_mgmt_ip=""
+5. Ansible Playbook: testbed_add_vm_topology.yml
+This playbook has two main parts:
+First part targets hosts that match both servers and vm_host groups:
+- hosts: servers:&vm_host
+  gather_facts: no
+  pre_tasks:
+    # ... validation tasks ...
+  roles:
+    - { role: vm_set, action: 'stop_sonic_vm', when force_stop_sonic_vm is defined }
+    - { role: vm_set, action: 'start_sonic_vm' }
+    - { role: vm_set, action: 'start_sid' }
+    - { role: vm_set, action: 'start_8000e_sonic' }
+    - { role: vm_set, action: 'add_topo' }
+Second part targets hosts that match servers and eos:
+- hosts: servers:&eos
+  gather_facts: no
+  serial: "{{ eos_batch_size | default(0) | int }}"
+  pre_tasks:
+    # ... tasks to prepare VM targets ...
+  roles:
+    - { role: eos, when: topology.VMs is defined and VM_targets is defined and inventory_hostname in VM_targets and (vm_type == "veos" or vm_type == "ceos" ) }
+    - { role: sonic, when: topology.VMs is defined and VM_targets is defined and inventory_hostname in VM_targets and (vm_type == "vsonic" ) }
+    - { role: cisco, when: topology.VMs is defined and VM_targets is defined and inventory_hostname in VM_targets and (vm_type == "vcisco" ) }
+6. VM Set Role: roles/vm_set/tasks/add_topo.yml
+This is where the main work happens. Let's break down the key tasks:
+6.1. Creating PTF Container
+- name: Create ptf container ptf_{{ vm_set_name }}
+  docker_container:
+    name: ptf_{{ vm_set_name }}
+    image: "{{ docker_registry_host }}/{{ ptf_imagename }}:{{ ptf_imagetag }}"
+    pull: yes
+    state: started
+    restart: no
+    network_mode: none
+    detach: True
+    capabilities:
+      - net_admin
+    privileged: yes
+    memory: 16G
+    memory_swap: 32G
+  become: yes
+This creates a Docker container named ptf_vms1-1 using the specified PTF image.
+6.2. Getting DUT Ports
+- name: Get dut ports
+  include_tasks: get_dut_port.yml
+  loop: "{{ duts_name.split(',') }}"
+  loop_control:
+    loop_var: dut_name
+The get_dut_port.yml task:
+* Reads the connection graph for the DUT
+* Extracts the front panel ports and their VLAN IDs
+* Stores this information in variables for later use
+Example output:
+duts_fp_ports: {
+  "sonic-dut-01": {
+    "Ethernet0": 100,
+    "Ethernet4": 101,
+    ...
+  }
+}
+6.3. Creating VLAN Ports for DUT
+- name: Create vlan ports for dut
+  include_tasks: create_dut_port.yml
+  when: external_port is defined
+  loop: "{{ duts_name.split(',') }}"
+  loop_control:
+    loop_var: dut_name
+The create_dut_port.yml task:
+* Creates VLAN interfaces on the server for each DUT port
+* Sets up the necessary IP addresses and routes
+6.4. Binding Topology to VMs
+- name: Bind topology {{ topo }} to VMs. base vm = {{ VM_base }}
+  vm_topology:
+    cmd: "bind"
+    vm_set_name: "{{ vm_set_name }}"
+    topo: "{{ topology }}"
+    vm_names: "{{ VM_targets }}"
+    vm_base: "{{ VM_base }}"
+    vm_type: "{{ vm_type }}"
+    ptf_mgmt_ip_addr: "{{ ptf_ip }}"
+    ptf_mgmt_ipv6_addr: "{{ ptf_ipv6 }}"
+    ptf_mgmt_ip_gw: "{{ mgmt_gw }}"
+    ptf_mgmt_ipv6_gw: "{{ mgmt_gw_v6 | default(None) }}"
+    ptf_bp_ip_addr: "{{ ptf_bp_ip }}"
+    ptf_bp_ipv6_addr: "{{ ptf_bp_ipv6 }}"
+    mgmt_bridge: "{{ mgmt_bridge }}"
+    duts_fp_ports: "{{ duts_fp_ports }}"
+    duts_mgmt_port: "{{ duts_mgmt_port }}"
+    duts_name: "{{ duts_name.split(',') }}"
+    fp_mtu: "{{ fp_mtu_size }}"
+    max_fp_num: "{{ max_fp_num }}"
+  become: yes
+This task uses the custom vm_topology module to:
+* Create network namespaces for the PTF container
+* Connect the PTF container to the management network
+* Connect the PTF container to the DUT ports
+* Connect the PTF container to the VMs
+* Set up the necessary routing
+The network connections are created using:
+* Linux bridges
+* Open vSwitch bridges
+* VLAN interfaces
+* TAP interfaces
+* Network namespaces
+6.5. Changing MAC Addresses for PTF Interfaces
+- name: Change MAC address for PTF interfaces
+  include_tasks: ptf_change_mac.yml
+  when: topo != 'fullmesh'
+This task changes the MAC addresses of the PTF interfaces to ensure they are unique and consistent.
+6.6. Starting PTF Portchannel Service
+- name: Start PTF portchannel service
+  include_tasks: ptf_portchannel.yml
+  vars:
+    ptf_portchannel_action: start
+This task starts the portchannel service on the PTF container, which allows it to handle LACP (Link Aggregation Control Protocol).
+6.7. Announcing Routes
+- name: Announce routes
+  include_tasks: announce_routes.yml
+  when:
+    - topo != 'fullmesh'
+    - not 'ptf' in topo
+    - not 'cable' in topo
+This task announces routes from the PTF container to the VMs, which allows the VMs to learn routes to the DUT.
+7. Configuring VMs: eos/sonic/cisco roles
+After setting up the PTF container and network connections, the playbook configures the VMs based on their type:
+* For vEOS/cEOS VMs: Applies the eos role
+* For vSonic VMs: Applies the sonic role
+* For vCisco VMs: Applies the cisco role
+These roles configure the VMs with the appropriate settings for the topology, such as:
+* Interface configurations
+* Routing protocols
+* VLANs
+* ACLs
+8. Adding Fanout Configuration: add_topo_fanout()
+This function executes the Ansible playbook:
+ansible-playbook fanout.yml -i ${inv_name} --vault-password-file="${passwd}"
+With our example values:
+ansible-playbook fanout.yml -i lab --vault-password-file="password.txt"
+The fanout.yml playbook configures the fanout switches to:
+* Create VLANs for each DUT port
+* Configure the ports connected to the DUT
+* Configure the ports connected to the server
+Network Architecture After add-topo
+After running the add-topo command, the network architecture looks like this:
+                    +----------------+
+                    |    br-mgmt     |
+                    +----------------+
+                           |
+                           | (VM0100-m)
+                           |
+                    +----------------+
+                    |     VM0100     |
+                    +----------------+
+                      |     |     |
+                      |     |     |
+                      |     |     |
+                      |     |     |
+                      |     |     |
+                    +-+   +-+   +-+
+                    |B|   |F|   |F|
+                    |P|   |P|   |P|
+                    +-+   +-+   +-+
+                     |     |     |
+                     |     |     |
+                     v     v     v
+                 To other  To DUT ports
+                   VMs
+                           |
+                           | (VLAN interfaces)
+                           |
+                    +----------------+
+                    |  PTF Container |
+                    +----------------+
+                           |
+                           | (mgmt interface)
+                           |
+                    +----------------+
+                    |    br-mgmt     |
+                    +----------------+
+Where:
+* br-mgmt: Management bridge connecting all VMs and the PTF container to the management network
+* BP: Backplane bridge connecting VMs to each other
+* FP: Front panel bridges connecting VMs to DUT ports
+* PTF Container: Container that can inject and sniff packets to/from the DUT and VMs
+Part 5: Deploying Minigraph (deploy-mg)
+Command Breakdown
+* -t vtestbed.yaml: Specifies the testbed definition file
+* -m veos_vtb: Specifies the VM inventory file
+* t0_sonic_mgmt_austen: The testbed name defined in vtestbed.yaml
+* veos_vtb: The inventory file containing the DUT
+* password.txt: Vault password file for Ansible
+Process Flow
+The testbed-cli.sh script reads the testbed information from vtestbed.yaml using the read_yaml function. The script then calls the deploy_minigraph function, which executes:
+ansible-playbook -i veos_vtb config_sonic_basedon_testbed.yml --vault-password-file=password.txt -l duts -e testbed_name=testbed_name -e testbed_file=vtestbed.yaml -e vm_file=veos_vtb -e deploy=true -e save=true
+The config_sonic_basedon_testbed.yml playbook:
+* Gathers testbed information using the test_facts module
+* Loads topology variables using the topo_facts module
+* Gets connection graph facts
+* Maps port aliases using the port_alias module
+* Gathers VM information using the testbed_vm_info module
+* Finds VLAN configurations for T0 topology
+* Creates a minigraph file using the minigraph_template.j2 template
+* When deploy=true:
+   * Saves the original minigraph file
+   * Creates a new minigraph file on the DUT
+   * Applies the new minigraph using config load_minigraph --override_config -y
+   * Syncs DUT system time with NTP server
+   * Configures TACACS
+   * Saves the configuration if save=true
+Key Files Involved
+* testbed-cli.sh: Main script that orchestrates the process
+* vtestbed.yaml: Testbed definition file
+* veos_vtb: VM inventory file
+* ansible/config_sonic_basedon_testbed.yml: Playbook for deploying minigraph
+* ansible/templates/minigraph_template.j2: Template for generating minigraph
+* ansible/library/test_facts.py: Module for gathering testbed facts
+* ansible/library/topo_facts.py: Module for gathering topology facts
+* ansible/library/port_alias.py: Module for mapping port aliases
+* ansible/library/testbed_vm_info.py: Module for gathering VM information
+* ansible/library/vlan_config.py: Module for finding VLAN configurations
+Detailed Code Flow for deploy-mg Command
+High-Level Flow Diagram
+testbed-cli.sh
+    ├── read_yaml() - Parses vtestbed.yaml
+    └── deploy_minigraph()
+        └── ansible-playbook config_sonic_basedon_testbed.yml
+            ├── Gather testbed information
+            ├── Load topology variables
+            ├── Get connection graph facts
+            ├── Map port aliases
+            ├── Gather VM information
+            ├── Find VLAN configurations
+            ├── Create minigraph file
+            └── Deploy minigraph to DUT
+                ├── Save original minigraph
+                ├── Copy new minigraph to DUT
+                ├── Apply minigraph
+                ├── Sync time with NTP
+                ├── Configure TACACS
+                └── Save configuration
+1. Entry Point: testbed-cli.sh
+When you run the deploy-mg command, the script first parses the command-line arguments:
+subcmd=$1  # This will be "deploy-mg"
+testbed_name=$1  # This will be "t0_sonic_mgmt_austen"
+inventory=$2  # This will be "veos_vtb"
+passfile=$3  # This will be "password.txt"
+2. Reading Testbed Information: read_yaml()
+The script calls read_yaml() to extract information from vtestbed.yaml:
+read_file ${testbed_name}
+This extracts key parameters as described earlier.
+3. Deploying Minigraph: deploy_minigraph()
+The script calls deploy_minigraph() which executes the Ansible playbook:
+ansible-playbook -i "$inventory" config_sonic_basedon_testbed.yml --vault-password-file="$passfile" -l "$duts" -e testbed_name="$testbed_name" -e testbed_file=$tbfile -e vm_file=$vmfile -e deploy=true -e save=true -e routing_config_mode="${routing_config_mode:-separated}" -e frr_mgmt_config="${frr_mgmt_config:-false}" $@
+With our example values:
+ansible-playbook -i "veos_vtb" config_sonic_basedon_testbed.yml --vault-password-file="password.txt" -l "sonic-dut-01" -e testbed_name="t0_sonic_mgmt_austen" -e testbed_file=vtestbed.yaml -e vm_file=veos_vtb -e deploy=true -e save=true -e routing_config_mode="separated" -e frr_mgmt_config="false"
+4. Ansible Playbook: config_sonic_basedon_testbed.yml
+This playbook targets hosts in the sonic group:
+- hosts: sonic
+  gather_facts: no
+  tasks:
+    # ... tasks to generate and deploy minigraph ...
+Let's break down the key tasks:
+4.1. Gathering Testbed Information
+- name: Gathering testbed information
+  test_facts: testbed_name="{{ testbed_name }}" testbed_file="{{ testbed_file }}"
+  delegate_to: localhost
+This task uses the custom test_facts module to gather information about the testbed from the testbed file.
+4.2. Loading Topology Variables
+- name: set testbed_type
+  set_fact:
+    topo: "{{ testbed_facts['topo'] }}"
+
+
+- topo_facts: topo={{ topo }} hwsku={{ hwsku }} testbed_name={{ testbed_name | default(None) }}
+  delegate_to: localhost
+This task loads topology-specific variables using the custom topo_facts module.
+4.3. Getting Connection Graph Facts
+- name: get connection graph if defined for dut (ignore any errors)
+  conn_graph_facts: host="{{ inventory_hostname }}" ignore_errors=true
+  delegate_to: localhost
+  ignore_errors: true
+This task uses the custom conn_graph_facts module to get information about the connections between the DUT and other devices.
+4.4. Mapping Port Aliases
+- name: find interface name mapping and individual interface speed if defined from dut
+  port_alias:
+    hwsku: "{{ hwsku }}"
+    card_type: "{{ card_type | default('fixed') }}"
+    hostname: "{{ inventory_hostname | default('') }}"
+    switchids: "{{ switchids | default([]) }}"
+    num_asic: "{{ num_asics }}"
+    sort_by_index: "{{ sort_by_index | default(true) }}"
+  when: deploy is defined and deploy|bool == true
+This task uses the custom port_alias module to map port aliases to physical port names.
+4.5. Gathering VM Information
+- name: gather testbed VM information
+  testbed_vm_info: base_vm={{ testbed_facts['vm_base'] if 'vm_base' in testbed_facts else "" }} topo={{ testbed_facts['topo'] }} vm_file={{ vm_file }} servers_info={{ testbed_facts['servers'] | default({}) }}
+  delegate_to: localhost
+  when: "(VM_topo | bool) and ('cable' not in topo)"
+This task uses the custom testbed_vm_info module to gather information about the VMs in the testbed.
+4.6. Finding VLAN Configurations
+- name: find all vlan configurations for T0 topology
+  vlan_config:
+    vm_topo_config: "{{ vm_topo_config }}"
+    port_alias: "{{ port_alias }}"
+    vlan_config: "{{ vlan_config | default(None) }}"
+  delegate_to: localhost
+  when: "('host_interfaces_by_dut' in vm_topo_config) and ('tor' in vm_topo_config['dut_type'] | lower)"
+This task uses the custom vlan_config module to find VLAN configurations for T0 topologies.
+4.7. Creating Minigraph File
+- name: create minigraph file in ansible minigraph folder
+  template: src=templates/minigraph_template.j2
+            dest=minigraph/{{ inventory_hostname}}.{{ topo }}.xml
+  delegate_to: localhost
+  when: local_minigraph is defined and local_minigraph|bool == true
+This task creates a minigraph file using the minigraph_template.j2 template.
+4.8. Deploying Minigraph to DUT
+When deploy=true, the playbook:
+- block:
+    # ... tasks to deploy minigraph ...
+  when: deploy is defined and deploy|bool == true
+The key tasks in this block are:
+4.8.1. Saving Original Minigraph
+- name: saved original minigraph file in SONiC DUT(ignore errors when file does not exist)
+  shell: mv /etc/sonic/minigraph.xml /etc/sonic/minigraph.xml.orig
+  become: true
+  ignore_errors: true
+  when: init_cfg_profile is not defined
+4.8.2. Copying New Minigraph to DUT
+- name: create new minigraph file for SONiC device
+  template: src=templates/minigraph_template.j2
+            dest=/etc/sonic/minigraph.xml
+  become: true
+  when: init_cfg_profile is not defined
+4.8.3. Applying Minigraph
+- name: execute cli "config load_minigraph --override_config -y" to apply new minigraph
+  become: true
+  shell: config load_minigraph --override_config -y
+  register: load_minigraph_result
+  failed_when:
+    - load_minigraph_result.rc != 0
+    - "'no such option: --override_config' not in load_minigraph_result.stderr"
+4.8.4. Syncing Time with NTP Server
+- name: Sync DUT system time with NTP server
+  become: true
+  command: ntpd -gq
+  ignore_errors: true
+  async: 60
+  poll: 10
+4.8.5. Configuring TACACS
+- name: Configure TACACS
+  become: true
+  shell: "{{ tacacs_config_cmd }}"
+  loop:
+    - config tacacs passkey {{ tacacs_passkey }}
+    - config tacacs authtype pap
+    - config aaa authentication login tacacs+
+  loop_control:
+    loop_var: tacacs_config_cmd
+  ignore_errors: true
+  when: tacacs_enabled_by_default is defined and tacacs_enabled_by_default|bool == true
+4.8.6. Saving Configuration
+- name: execute cli "config save -y" to save current minigraph as startup-config
+  become: true
+  shell: config save -y
+  when: save is defined and save|bool == true
+Minigraph Template Structure
+The minigraph_template.j2 template generates an XML file that defines the network topology for the DUT. The key sections are:
+* Metadata: Information about the DUT, such as hostname, type, and deployment environment.
+* Devices: List of devices in the topology, including the DUT and its neighbors.
+* Links: Connections between devices.
+* Port Channels: Aggregated links.
+* VLANs: VLAN configurations.
+* ACLs: Access Control Lists.
+* Routing: BGP and other routing protocol configurations.
+Example minigraph.xml (simplified):
+<DeviceMiniGraph xmlns="Microsoft.Search.Autopilot.Evolution">
+  <Metadata>
+    <Type>ToRRouter</Type>
+    <Hostname>sonic-dut-01</Hostname>
+    <HwSku>ACS-MSN2700</HwSku>
+  </Metadata>
+  <DeviceInterfaceLinks>
+    <DeviceInterfaceLink>
+      <EndDevice>ARISTA01T2</EndDevice>
+      <EndPort>Ethernet1</EndPort>
+      <StartDevice>sonic-dut-01</StartDevice>
+      <StartPort>Ethernet0</StartPort>
+    </DeviceInterfaceLink>
+    <!-- ... more links ... -->
+  </DeviceInterfaceLinks>
+  <PortChannelInterfaces>
+    <PortChannel>
+      <Name>PortChannel01</Name>
+      <AttachTo>Ethernet0</AttachTo>
+      <SubInterface/>
+    </PortChannel>
+    <!-- ... more port channels ... -->
+  </PortChannelInterfaces>
+  <VlanInterfaces>
+    <VlanInterface>
+      <Name>Vlan1000</Name>
+      <AttachTo>Ethernet4</AttachTo>
+      <DhcpRelays>192.168.0.1</DhcpRelays>
+      <VlanID>1000</VlanID>
+      <Subnet>192.168.0.0/24</Subnet>
+    </VlanInterface>
+    <!-- ... more VLANs ... -->
+  </VlanInterfaces>
+  <BGPRouters>
+    <BGPRouter>
+      <ASN>65100</ASN>
+      <Hostname>sonic-dut-01</Hostname>
+      <Peers>
+        <BGPPeer>
+          <Address>10.0.0.1</Address>
+          <ASN>65200</ASN>
+          <HoldTime>180</HoldTime>
+        </BGPPeer>
+        <!-- ... more peers ... -->
+      </Peers>
+    </BGPRouter>
+  </BGPRouters>
+</DeviceMiniGraph>
+DUT Configuration After deploy-mg
+After running the deploy-mg command, the DUT is configured with:
+* Interfaces: Physical interfaces are configured with IP addresses and other settings.
+* Port Channels: Aggregated links are configured.
+* VLANs: VLAN interfaces are created and configured.
+* Routing: BGP and other routing protocols are configured.
+* ACLs: Access Control Lists are applied.
+* QoS: Quality of Service settings are configured.
+* TACACS: TACACS authentication is configured.
+Summary
+The complete testbed deployment process involves three sequential steps:
+1. Set ups the bridges, veth pairs and container.
+2. Start Topology VMs (start-topo-vms): Creates and starts the virtual machines needed for the testbed.
+3. Add Topology (add-topo): Creates the PTF container, configures the network connections between VMs and DUT, and sets up the fanout switches.
+4. Deploy Minigraph (deploy-mg): Generates and applies the minigraph configuration to the DUT based on the testbed topology.
+After these steps, the testbed is fully deployed and ready for testing.
