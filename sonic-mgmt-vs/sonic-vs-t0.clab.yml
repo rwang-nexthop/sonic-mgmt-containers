@@ -17,7 +17,9 @@ topology:
       mgmt-ipv4: 172.20.20.2
       startup-config: ./configs/dut/config_db.json
       binds:
-        - ./configs/dut/minigraph.xml:/etc/sonic/minigraph.xml
+        - ./configs/dut/minigraph.xml:/mnt/minigraph.xml
+      exec:
+        - bash -c "mkdir -p /etc/sonic && cp /mnt/minigraph.xml /etc/sonic/minigraph.xml && chmod 644 /etc/sonic/minigraph.xml"
 
     # Leaf Neighbors (SONiC-VM)
     leaf1:
@@ -25,14 +27,18 @@ topology:
       mgmt-ipv4: 172.20.20.11
       startup-config: ./configs/leaf1/config_db.json
       binds:
-        - ./configs/leaf1/minigraph.xml:/etc/sonic/minigraph.xml
+        - ./configs/leaf1/minigraph.xml:/mnt/minigraph.xml
+      exec:
+        - bash -c "mkdir -p /etc/sonic && cp /mnt/minigraph.xml /etc/sonic/minigraph.xml && chmod 644 /etc/sonic/minigraph.xml"
 
     leaf2:
       kind: sonic-vm
       mgmt-ipv4: 172.20.20.12
       startup-config: ./configs/leaf2/config_db.json
       binds:
-        - ./configs/leaf2/minigraph.xml:/etc/sonic/minigraph.xml
+        - ./configs/leaf2/minigraph.xml:/mnt/minigraph.xml
+      exec:
+        - bash -c "mkdir -p /etc/sonic && cp /mnt/minigraph.xml /etc/sonic/minigraph.xml && chmod 644 /etc/sonic/minigraph.xml"
 
     # PTF - Packet Test Framework
     ptf-clab:
